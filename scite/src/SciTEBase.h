@@ -427,8 +427,10 @@ protected:
 
 	GUI::Window wSciTE;  ///< Contains wToolBar, wTabBar, wContent, and wStatusBar
 	GUI::Window wContent;    ///< Contains wEditor and wOutput
+	GUI::Window wTree;
 	GUI::ScintillaWindow wEditor;
 	GUI::ScintillaWindow wOutput;
+	GUI::Window wModule;
 	GUI::Window wIncrement;
 	GUI::Window wToolBar;
 	GUI::Window wStatusBar;
@@ -445,7 +447,6 @@ protected:
 	int visHeightTab;
 	int visHeightStatus;
 	int visHeightEditor;
-	int heightBar;
 	// Prevent automatic load dialog appearing at the same time as
 	// other dialogs as this can leads to reentry errors.
 	int dialogsOnScreen;
@@ -460,11 +461,16 @@ protected:
 	Extension *extender;
 	bool needReadProperties;
 
-	int heightOutput;
-	int heightOutputStartDrag;
+	#define DIV_THICK	7
+	int treeSize;		// width of Tree
+	int outputSize;	// width or height of Output
+	int moduleSize;	// width of Module
+	double outputRatio;
+	double treeRatio;
+	double moduleRatio;
 	GUI::Point ptStartDrag;
 	bool capturedMouse;
-	int previousHeightOutput;
+	//int previousHeightOutput;
 	bool firstPropertiesRead;
 	bool splitVertical;	///< @c true if the split bar between editor and output is vertical.
 	bool bufferedDraw;
@@ -534,6 +540,8 @@ protected:
 	Localization localiser;
 
 	PropSetFile propsStatus;	// Not attached to a file but need SetInteger method.
+
+	Project project;
 
 	enum { bufferMax = 100 };
 	BufferList buffers;
@@ -679,7 +687,7 @@ protected:
 	virtual int WindowMessageBox(GUI::Window &w, const GUI::gui_string &msg, int style) = 0;
 	virtual void FindMessageBox(const SString &msg, const SString *findItem = 0) = 0;
 	int FindInTarget(const char *findWhat, int lenFind, int startPosition, int endPosition);
-	int FindNext(bool reverseDirection, bool showWarnings = true);
+	int FindNext(bool reverseDirection, bool showWarnings = false);
 	virtual void FindIncrement() = 0;
 	int IncrementSearchMode();
 	virtual void FindInFiles() = 0;
@@ -734,7 +742,7 @@ protected:
 	void CharAddedOutput(int ch);
 	void SetTextProperties(PropSetFile &ps);
 	virtual void SetFileProperties(PropSetFile &ps) = 0;
-	virtual void UpdateStatusBar(bool bUpdateSlowData);
+	virtual void UpdateStatusBar(bool bUpdateSlowData, const char *message=NULL);
 	int GetLineLength(int line);
 	int GetCurrentLineNumber();
 	int GetCurrentScrollPosition();
@@ -777,8 +785,13 @@ protected:
 	void BookmarkToggle(int lineno = -1);
 	void BookmarkNext(bool forwardScan = true, bool select = false);
 	void ToggleOutputVisible();
+	void ToggleTreeVisible();
+	void ToggleModuleVisible();
 	virtual void SizeContentWindows() = 0;
 	virtual void SizeSubWindows() = 0;
+	virtual void UpdateTree() = 0;
+	virtual void QuickOpen() = 0;
+
 
 	virtual void SetMenuItem(int menuNumber, int position, int itemID,
 		const GUI::gui_char *text, const GUI::gui_char *mnemonic = 0) = 0;
@@ -788,7 +801,7 @@ protected:
 	virtual void EnableAMenuItem(int wIDCheckItem, bool val) = 0;
 	virtual void CheckMenusClipboard();
 	virtual void CheckMenus();
-	virtual void AddToPopUp(const char *label, int cmd = 0, bool enabled = true) = 0;
+	virtual void AddToPopUp(const char *label, unsigned int cmd = 0, bool enabled = true) = 0;
 	void ContextMenu(GUI::ScintillaWindow &wSource, GUI::Point pt, GUI::Window wCmd);
 
 	void DeleteFileStackMenu();
@@ -841,8 +854,8 @@ protected:
 	void Activate(bool activeApp);
 	GUI::Rectangle GetClientRectangle();
 	void Redraw();
-	int NormaliseSplit(int splitPos);
-	void MoveSplit(GUI::Point ptNewDrag);
+	void NormalizeSizes(bool updateRatios);
+	//void MoveSplit(GUI::Point ptNewDrag);
 
 	void UIAvailable();
 	void PerformOne(char *action);
@@ -920,7 +933,8 @@ const int blockSize = 131072;
 int ControlIDOfCommand(unsigned long);
 void LowerCaseString(char *s);
 long ColourOfProperty(PropSetFile &props, const char *key, Colour colourDefault);
-char *Slash(const char *s, bool quoteQuotes);
+char *unRegExp(const char *s);
+char *Slash(const char *s, bool quoteQuotes, bool quoteBackslash);
 unsigned int UnSlash(char *s);
 void WindowSetFocus(GUI::ScintillaWindow &w);
 

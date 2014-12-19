@@ -19,6 +19,8 @@
 
 #include <string>
 #include <map>
+#include <list>
+#include <vector>
 
 #include "Scintilla.h"
 #include "SciLexer.h"
@@ -61,6 +63,7 @@ const GUI::gui_char menuAccessIndicator[] = GUI_TEXT("&");
 #include "IFaceTable.h"
 #include "Mutex.h"
 #include "JobQueue.h"
+#include "Project.h"
 #include "SciTEBase.h"
 
 void SciTEBase::SetImportMenu() {
@@ -1376,11 +1379,11 @@ void SciTEBase::ReadPropertiesInitial() {
 	int sizeHorizontal = props.GetInt("output.horizontal.size", 0);
 	int sizeVertical = props.GetInt("output.vertical.size", 0);
 	int hideOutput = props.GetInt("output.initial.hide", 0);
-	if ((!splitVertical && (sizeVertical > 0) && (heightOutput < sizeVertical)) ||
-		(splitVertical && (sizeHorizontal > 0) && (heightOutput < sizeHorizontal))) {
-		previousHeightOutput = splitVertical ? sizeHorizontal : sizeVertical;
+	if ((!splitVertical && (sizeVertical > 0) && (outputSize < sizeVertical)) ||
+		(splitVertical && (sizeHorizontal > 0) && (outputSize < sizeHorizontal))) {
+		//prevOutputSize = splitVertical ? sizeHorizontal : sizeVertical;
 		if (!hideOutput) {
-			heightOutput = NormaliseSplit(previousHeightOutput);
+			//outputSize = NormaliseSplit(prevOutputSize);
 			SizeSubWindows();
 			Redraw();
 		}

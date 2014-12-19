@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#include <iostream> //dbg
+
 #ifdef _MSC_VER
 #pragma warning(disable: 4786)
 #endif
@@ -22,6 +24,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <list>
 
 #if defined(GTK)
 
@@ -68,6 +71,7 @@
 #include "SciTE.h"
 #include "Mutex.h"
 #include "JobQueue.h"
+#include "Project.h"
 #include "SciTEBase.h"
 
 // Contributor names are in UTF-8
@@ -368,7 +372,9 @@ SciTEBase::SciTEBase(Extension *ext) : apis(true), extender(ext) {
 	visHeightTab = 0;
 	visHeightStatus = 0;
 	visHeightEditor = 1;
-	heightBar = 7;
+	treeSize = 0;
+	moduleSize = 0;
+	outputSize = 0;
 	dialogsOnScreen = 0;
 	topMost = false;
 	wrap = false;
@@ -377,10 +383,6 @@ SciTEBase::SciTEBase(Extension *ext) : apis(true), extender(ext) {
 	isReadOnly = false;
 	openFilesHere = false;
 	fullScreen = false;
-
-	heightOutput = 0;
-	heightOutputStartDrag = 0;
-	previousHeightOutput = 0;
 
 	allowMenuActions = true;
 	scrollOutput = 1;
@@ -1161,24 +1163,63 @@ void SciTEBase::SelectionIntoProperties() {
 }
 
 void SciTEBase::SelectionIntoFind(bool stripEol /*=true*/) {
-	SString sel = SelectionWord(stripEol);
+	SString sel = SelectionExtend(NULL, stripEol);
 	if (sel.length() && !sel.contains('\r') && !sel.contains('\n')) {
 		// The selection does not include a new line, so is likely to be
 		// the expression to search...
 		findWhat = sel;
-		if (unSlash) {
-			char *slashedFind = Slash(findWhat.c_str(), false);
+
+		if (regExp) {
+			char *slashedFind = unRegExp(findWhat.c_str());
 			if (slashedFind) {
 				findWhat = slashedFind;
-				delete []slashedFind;
+				delete[] slashedFind;
+			}
+		}
+
+		if (unSlash) {
+			char *slashedFind = Slash(findWhat.c_str(), false, !regExp);
+			if (slashedFind) {
+				findWhat = slashedFind;
+				delete[] slashedFind;
 			}
 		}
 	}
+
 	// else findWhat remains the same as last time.
 }
 
 SString SciTEBase::EncodeString(const SString &s) {
 	return SString(s);
+}
+
+char *unRegExp(const char *s) {
+	char *oRet = new char[strlen(s) * 2];
+	char *o = oRet;
+	while (*s) {
+		switch(*s) {
+		case '.':
+		case '\\':
+		case '[':
+		case ']':
+		case '*':
+		case '+':
+		case '(':
+		case ')':
+		//case '{':
+		//case '}':
+		//case '<':
+		//case '>':
+		case '^':
+		case '$':
+			*o++ = '\\';
+		default:
+			*o++ = *s;
+		}
+		s++;
+	}
+	*o = '\0';
+	return oRet;
 }
 
 /**
@@ -1188,7 +1229,7 @@ SString SciTEBase::EncodeString(const SString &s) {
  * expansion needed when all of the input needs to be output using the octal form.
  * The return value should be deleted with delete[].
  */
-char *Slash(const char *s, bool quoteQuotes) {
+char *Slash(const char *s, bool quoteQuotes, bool quoteBackslash) {
 	char *oRet = new char[strlen(s) * 4 + 1];
 	char *o = oRet;
 	while (*s) {
@@ -1213,7 +1254,7 @@ char *Slash(const char *s, bool quoteQuotes) {
 		} else if (*s == '\v') {
 			*o++ = '\\';
 			*o++ = 'v';
-		} else if (*s == '\\') {
+		} else if (quoteBackslash && *s == '\\') {
 			*o++ = '\\';
 			*o++ = '\\';
 		} else if (quoteQuotes && (*s == '\'')) {
@@ -1468,9 +1509,12 @@ int SciTEBase::FindNext(bool reverseDirection, bool showWarnings) {
 		havefound = false;
 		if (showWarnings) {
 			WarnUser(warnNotFound);
-			FindMessageBox("Can not find the string '^0'.",
-			        &findWhat);
+			FindMessageBox("Cannot find the string '^0'.", &findWhat);
 		}
+		SString str("Cannot find the string: \"");
+		str += findWhat;
+		str += "\"";
+		UpdateStatusBar(false, str.c_str());
 	} else {
 		havefound = true;
 		int start = wEditor.Call(SCI_GETTARGETSTART);
@@ -1687,7 +1731,7 @@ void SciTEBase::OutputAppendStringSynchronised(const char *s, int len) {
 }
 
 void SciTEBase::MakeOutputVisible() {
-	if (heightOutput <= 0) {
+	if (outputSize == 0) {
 		ToggleOutputVisible();
 	}
 }
@@ -1746,19 +1790,35 @@ void SciTEBase::Execute() {
 }
 
 void SciTEBase::ToggleOutputVisible() {
-	if (heightOutput > 0) {
-		heightOutput = NormaliseSplit(0);
+	if (outputSize > 0) {
+		outputSize = 0;
+		WindowSetFocus(wEditor);
+	} else if (splitVertical) {
+		outputSize = wContent.GetWidth() * outputRatio;
+	} else {
+		outputSize = wContent.GetHeight() * outputRatio;
+	}
+	SizeSubWindows();
+	Redraw();
+}
+
+void SciTEBase::ToggleTreeVisible() {
+	if (treeSize > 0) {
+		treeSize = 0;
 		WindowSetFocus(wEditor);
 	} else {
-		if (previousHeightOutput < 20) {
-			if (splitVertical)
-				heightOutput = NormaliseSplit(300);
-			else
-				heightOutput = NormaliseSplit(100);
-			previousHeightOutput = heightOutput;
-		} else {
-			heightOutput = NormaliseSplit(previousHeightOutput);
-		}
+		treeSize = wContent.GetWidth() * treeRatio;
+	}
+	SizeSubWindows();
+	Redraw();
+}
+
+void SciTEBase::ToggleModuleVisible() {
+	if (moduleSize > 0) {
+		moduleSize = 0;
+		WindowSetFocus(wEditor);
+	} else {
+		moduleSize = wContent.GetWidth() * moduleRatio;
 	}
 	SizeSubWindows();
 	Redraw();
@@ -2710,7 +2770,7 @@ void SciTEBase::SetTextProperties(
 	ps.Set("SelHeight", temp);
 }
 
-void SciTEBase::UpdateStatusBar(bool bUpdateSlowData) {
+void SciTEBase::UpdateStatusBar(bool bUpdateSlowData, const char *extra) {
 	if (sbVisible) {
 		if (bUpdateSlowData) {
 			SetFileProperties(propsStatus);
@@ -2726,6 +2786,10 @@ void SciTEBase::UpdateStatusBar(bool bUpdateSlowData) {
 		char sbKey[32];
 		sprintf(sbKey, "statusbar.text.%d", sbNum);
 		SString msg = propsStatus.GetExpanded(sbKey);
+		if (extra) {
+			msg += "        ";
+			msg += extra;
+		}
 		if (msg.size() && sbValue != msg) {	// To avoid flickering, update only if needed
 			SetStatusBarText(msg.c_str());
 			sbValue = msg;
@@ -3325,6 +3389,11 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 			WindowSetFocus(wEditor);
 		}
 		break;
+	case IDM_OPENQUICK:
+		if (project.opened) {
+			QuickOpen();
+			break;
+		}
 	case IDM_OPEN:
 		// No need to see if can make room as that will occur
 		// when doing the opening. Must be done there as user
@@ -3655,8 +3724,8 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 		break;
 
 	case IDM_SPLITVERTICAL:
+		// make split static
 		splitVertical = !splitVertical;
-		heightOutput = NormaliseSplit(heightOutput);
 		SizeSubWindows();
 		CheckMenus();
 		Redraw();
@@ -3693,6 +3762,16 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 
 	case IDM_TOGGLEOUTPUT:
 		ToggleOutputVisible();
+		CheckMenus();
+		break;
+
+	case IDM_TOGGLETREE:
+		ToggleTreeVisible();
+		CheckMenus();
+		break;
+
+	case IDM_TOGGLEMODULE:
+		ToggleModuleVisible();
 		CheckMenus();
 		break;
 
@@ -4344,7 +4423,9 @@ void SciTEBase::CheckMenus() {
 	CheckAMenuItem(IDM_LINENUMBERMARGIN, lineNumbers);
 	CheckAMenuItem(IDM_SELMARGIN, margin);
 	CheckAMenuItem(IDM_FOLDMARGIN, foldMargin);
-	CheckAMenuItem(IDM_TOGGLEOUTPUT, heightOutput > 0);
+	CheckAMenuItem(IDM_TOGGLEOUTPUT, outputSize > 0);
+	CheckAMenuItem(IDM_TOGGLETREE, treeSize > 0);
+	CheckAMenuItem(IDM_TOGGLEMODULE, moduleSize > 0);
 	CheckAMenuItem(IDM_TOGGLEPARAMETERS, ParametersOpen());
 	CheckAMenuItem(IDM_MONOFONT, CurrentBuffer()->useMonoFont);
 	EnableAMenuItem(IDM_COMPILE, !jobQueue.IsExecuting() &&
@@ -4400,6 +4481,10 @@ void SciTEBase::ContextMenu(GUI::ScintillaWindow &wSource, GUI::Point pt, GUI::W
 	AddToPopUp("");
 	if (wSource.GetID() == wOutput.GetID()) {
 		AddToPopUp("Hide", IDM_TOGGLEOUTPUT, true);
+	} else if (wSource.GetID() == wTree.GetID()) {
+		AddToPopUp("Hide", IDM_TOGGLETREE, true);
+	} else if (wSource.GetID() == wModule.GetID()) {
+		AddToPopUp("Hide", IDM_TOGGLEMODULE, true);
 	} else {
 		AddToPopUp("Close", IDM_CLOSE, true);
 	}
@@ -4422,22 +4507,65 @@ void SciTEBase::ContextMenu(GUI::ScintillaWindow &wSource, GUI::Point pt, GUI::W
 /**
  * Ensure that a splitter bar position is inside the main window.
  */
-int SciTEBase::NormaliseSplit(int splitPos) {
-	GUI::Rectangle rcClient = GetClientRectangle();
-	int w = rcClient.Width();
-	int h = rcClient.Height();
-	if (splitPos < 20)
-		splitPos = 0;
-	if (splitVertical) {
-		if (splitPos > w - heightBar - 20)
-			splitPos = w - heightBar;
-	} else {
-		if (splitPos > h - heightBar - 20)
-			splitPos = h - heightBar;
+void SciTEBase::NormalizeSizes(bool updateRatios) {
+
+	int w = wContent.GetWidth();
+	int h = wContent.GetHeight();
+
+	const int w_min = MAX(0, w - 2*32 + 2*DIV_THICK);
+
+	if (!updateRatios) {
+		if (treeSize)
+			treeSize = treeRatio * w;
+		if (moduleSize)
+			moduleSize = moduleRatio * w;
+		if (outputSize)
+			outputSize = outputRatio * (splitVertical? w : h);
 	}
-	return splitPos;
+
+	if (treeSize < 32)
+		treeSize = 0;
+
+	if (moduleSize < 32)
+		moduleSize = 0;
+
+	if (outputSize < 32)
+		outputSize = 0;
+
+	if (w_min < treeSize) {
+		if (w_min < moduleSize)
+			treeSize = w_min / 2;
+		else
+			treeSize = w_min - moduleSize;
+	}
+
+	if (w_min - treeSize < moduleSize)
+		moduleSize = w_min - treeSize;
+
+	if (splitVertical) {
+		if (w_min  + 32 - moduleSize - treeSize < outputSize)
+			outputSize = w_min  + 32 - moduleSize - treeSize;
+	} else {
+		if (h - 2 * 32 - DIV_THICK < outputSize)
+			outputSize = h - 2 * 32 - DIV_THICK;
+	}
+
+	if (updateRatios) {
+		if (treeSize)
+			treeRatio = (double) treeSize / w;
+
+		if (moduleSize)
+			moduleRatio = (double) moduleSize / w;
+
+		if (outputSize)
+			outputRatio = (double) outputSize / (splitVertical? w : h);
+	}
+
+	//printf("%4d/%4d - %4d/%f - %4d/%f - %4d/%f\n", w, h,
+	//	treeSize, treeRatio, moduleSize, moduleRatio, outputSize, outputRatio);
 }
 
+/*
 void SciTEBase::MoveSplit(GUI::Point ptNewDrag) {
 	int newHeightOutput = heightOutputStartDrag + (ptStartDrag.y - ptNewDrag.y);
 	if (splitVertical)
@@ -4449,8 +4577,9 @@ void SciTEBase::MoveSplit(GUI::Point ptNewDrag) {
 		//Redraw();
 	}
 
-	previousHeightOutput = newHeightOutput;
+	prevOutputSize = newHeightOutput;
 }
+ */
 
 void SciTEBase::UIAvailable() {
 	SetImportMenu();
@@ -4916,11 +5045,31 @@ bool SciTEBase::ProcessCommandLine(GUI::gui_string &args, int phase) {
 				evaluate = true;
 
 			InitialiseBuffers();
-			if (props.GetInt("save.recent"))
-				RestoreRecentMenu();
 
-			if (!PreOpenCheck(arg))
-				Open(arg, ofQuiet);
+			if (EndsWith(arg, GUI_TEXT(".zte"))) {
+
+				if (!project.open(FilePath(arg).AbsolutePath())) {
+					WindowMessageBox(wSciTE, project.msg, MB_OK | MB_ICONWARNING);
+
+
+
+				}
+
+				UpdateTree();
+
+				if (treeSize == 0)
+					ToggleTreeVisible();
+
+				Open(arg, ofNone);
+
+			} else {
+
+				if (props.GetInt("save.recent"))
+					RestoreRecentMenu();
+
+				if (!PreOpenCheck(arg))
+					Open(arg, ofQuiet);
+			}
 		}
 	}
 	if (phase == 1) {

@@ -1,0 +1,15 @@
+
+
+proj.name=Zite
+proj.path=.
+
+proj.include.++=src;*.cxx
+proj.include.++=src;*.h
+proj.include.++=gtk;*.cxx;*.h
+
+proj.include.++=../scintilla/src;*.cxx
+proj.include.++=../scintilla/include;*.h
+proj.include.++=sca_gtk;../scintilla/gtk/*.cxx;../scintilla/gtk/*.h
+
+
+

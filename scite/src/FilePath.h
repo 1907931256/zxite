@@ -74,8 +74,16 @@ public:
 	int GetFileLength() const;
 	bool Exists() const;
 	bool IsDirectory() const;
+	bool IsFilename() const;
 	bool Matches(const GUI::gui_char *pattern) const;
+
+	//FilePath &operator=(const GUI::gui_string &fileName_) { fileName.assign(fileName_); return *this; }
+	FilePath operator+(const FilePath &add) const;
+	FilePath &operator+=(const char *add);
+	bool operator<(const FilePath &other) const;
+	bool operator==(const FilePath &other) const;
 };
+
 
 class FilePathSet {
 	size_t size;

@@ -16,7 +16,7 @@ AR = ar
 
 # For the Gnome desktop stuff to work, prefix must point to where Gnome thinks it is.
 CONFIGFLAGS:=$(shell pkg-config --cflags gtk+-2.0)
-CONFIGLIB:=$(shell pkg-config --libs gtk+-2.0 gthread-2.0)
+CONFIGLIB:=$(shell pkg-config --libs gtk+-2.0 gthread-2.0 gmodule-2.0)
 CONFIGTHREADS:=
 gnomeprefix:=$(shell pkg-config --variable=prefix gtk+-2.0 2>/dev/null)
 ifndef prefix
@@ -87,7 +87,7 @@ COMPLIB=../../scintilla/bin/scintilla.a
 
 $(PROG): SciTEGTK.o GUIGTK.o FilePath.o SciTEBase.o SciTEBuffers.o SciTEIO.o StringList.o Exporters.o \
 PropSetFile.o MultiplexExtension.o DirectorExtension.o SciTEProps.o StyleWriter.o Utf8_16.o \
-	JobQueue.o GTKMutex.o IFaceTable.o $(COMPLIB) $(LUA_OBJS)
+	JobQueue.o GTKMutex.o IFaceTable.o Project.o $(COMPLIB) $(LUA_OBJS)
 	$(CC) `$(CONFIGTHREADS)` -rdynamic -Wl,--as-needed -Wl,--version-script lua.vers -DGTK $^ -o $@ $(CONFIGLIB) -ldl -lstdc++
 
 # Automatically generate header dependencies with "make deps"

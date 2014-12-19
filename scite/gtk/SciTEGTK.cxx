@@ -3,6 +3,7 @@
 // Copyright 1998-2004 by Neil Hodgson <neilh@scintilla.org>
 // The License.txt file describes the conditions under which this software may be distributed.
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -16,6 +17,9 @@
 #include <string>
 #include <map>
 #include <algorithm>
+#include <list>
+#include <vector>
+#include <iostream>
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
@@ -40,22 +44,20 @@
 
 #ifndef NO_EXTENSIONS
 #include "MultiplexExtension.h"
-
-#ifndef NO_FILER
-#include "DirectorExtension.h"
-#endif
-
-#ifndef NO_LUA
-#include "LuaExtension.h"
-#endif
-
-#endif
+	#ifndef NO_FILER
+	#include "DirectorExtension.h"
+	#endif
+	#ifndef NO_LUA
+	#include "LuaExtension.h"
+	#endif
+#endif //NO_EXTENSIONS
 
 #include "SciTE.h"
 #include "Mutex.h"
 #include "JobQueue.h"
 #include "pixmapsGNOME.h"
 #include "SciIcon.h"
+#include "Project.h"
 #include "SciTEBase.h"
 #include "SciTEKeys.h"
 
@@ -297,7 +299,11 @@ class SciTEGTK : public SciTEBase {
 
 protected:
 
-	GUI::Window wDivider;
+	GtkTreeStore *wTreeModel;
+	GtkWidget *wTreeView;
+	GUI::Window wDividerL;
+	GUI::Window wDividerM;
+	GUI::Window wDividerR;
 	GUI::Point ptOld;
 	GdkGC *xor_gc;
 	bool focusEditor;
@@ -379,13 +385,23 @@ protected:
 	virtual void SizeContentWindows();
 	virtual void SizeSubWindows();
 
+	virtual void UpdateTree();
+
+	bool ProcessFolder(GtkTreeIter *parent_iter, std::vector<FilePath>::iterator &it, int pos);
+	virtual void QuickOpen();
+	static void QuickOpenResponse(GtkWidget *w, gint resp, SciTEGTK *scitew);
+	int QuickOpenFill(GtkListStore *store, GUI::gui_string glob);
+	static gboolean QuickOpenKeyList(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
+	static gboolean QuickOpenRelease(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
+	static gboolean QuickOpenPress(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
+
 	virtual void SetMenuItem(int menuNumber, int position, int itemID,
 	                         const char *text, const char *mnemonic = 0);
 	virtual void DestroyMenuItem(int menuNumber, int itemID);
 	virtual void CheckAMenuItem(int wIDCheckItem, bool val);
 	virtual void EnableAMenuItem(int wIDCheckItem, bool val);
 	virtual void CheckMenus();
-	virtual void AddToPopUp(const char *label, int cmd = 0, bool enabled = true);
+	virtual void AddToPopUp(const char *label, guint cmd = 0, bool enabled = true);
 	virtual void ExecuteNext();
 
 	virtual void OpenUriList(const char *list);
@@ -496,7 +512,7 @@ protected:
 	static gint MousePress(GtkWidget *widget, GdkEventButton *event, SciTEGTK *scitew);
 	gint Mouse(GdkEventButton *event);
 
-	void DividerXOR(GUI::Point pt);
+	void DividerXOR(GtkWidget *divider, GUI::Point pt);
 	static gint DividerExpose(GtkWidget *widget, GdkEventExpose *ose, SciTEGTK *scitew);
 	static gint DividerMotion(GtkWidget *widget, GdkEventMotion *event, SciTEGTK *scitew);
 	static gint DividerPress(GtkWidget *widget, GdkEventButton *event, SciTEGTK *scitew);
@@ -517,6 +533,9 @@ protected:
 	GdkPixbuf *CreatePixbuf(const char *filename);
 	// Callback function to show hidden files in filechooser
 	static void toggle_hidden_cb(GtkToggleButton *toggle, gpointer data);
+
+	void DividerNew(GUI::Window &divider, GUI::Window &container);
+	void DividerCursorSet(GUI::Window &divider, bool vertical);
 public:
 
 	// TODO: get rid of this - use callback argument to find SciTEGTK
@@ -928,26 +947,378 @@ void SciTEGTK::GetWindowPosition(int *left, int *top, int *width, int *height, i
 	*maximize = (gdk_window_get_state(PWidget(wSciTE)->window) & GDK_WINDOW_STATE_MAXIMIZED) != 0;
 }
 
-void SciTEGTK::SizeContentWindows() {
-	GUI::Rectangle rcClient = GetClientRectangle();
-	int left = rcClient.left;
-	int top = rcClient.top;
-	int w = rcClient.right - rcClient.left;
-	int h = rcClient.bottom - rcClient.top;
-	heightOutput = NormaliseSplit(heightOutput);
-	if (splitVertical) {
-		wEditor.SetPosition(GUI::Rectangle(left, top, w - heightOutput - heightBar + left, h + top));
-		wDivider.SetPosition(GUI::Rectangle(w - heightOutput - heightBar + left, top, w - heightOutput + left, h + top));
-		wOutput.SetPosition(GUI::Rectangle(w - heightOutput + left, top, w + left, h + top));
-	} else {
-		wEditor.SetPosition(GUI::Rectangle(left, top, w + left, h - heightOutput - heightBar + top));
-		wDivider.SetPosition(GUI::Rectangle(left, h - heightOutput - heightBar + top, w + left, h - heightOutput + top));
-		wOutput.SetPosition(GUI::Rectangle(left, h - heightOutput + top, w + left, h + top));
+/*
+struct _GdkRectangle
+{
+  gint x;
+  gint y;
+  gint width;
+  gint height;
+};*/
+
+
+struct WaAlloc : public GtkAllocation {
+	WaAlloc(int l, int t, int w, int h) {
+		x = l; y = t; width = w; height = h;
 	}
+};
+
+void gtk_widget_size_allocate_wa(GtkWidget *widget, const WaAlloc &allocation) {
+	gtk_widget_size_allocate(widget, (GtkAllocation *) &allocation);
+}
+
+void SciTEGTK::SizeContentWindows(void)
+{
+	int x = wContent.GetLeft();
+	int y = wContent.GetTop();
+	int w = wContent.GetWidth();
+	int h = wContent.GetHeight();
+
+	gtk_widget_size_allocate_wa(PWidget(wTree),	WaAlloc(x, 		y, treeSize, 	h));
+	gtk_widget_size_allocate_wa(PWidget(wDividerL), WaAlloc(x + treeSize,	y, DIV_THICK, 	h));
+
+	if (splitVertical) {
+		gtk_widget_size_allocate_wa(PWidget(wEditor),
+			WaAlloc(x + treeSize + DIV_THICK, y, w - moduleSize - treeSize - outputSize - 3*DIV_THICK, h));
+		gtk_widget_size_allocate_wa(PWidget(wDividerM),
+			WaAlloc(x + w - moduleSize - outputSize - 2*DIV_THICK, y, DIV_THICK, h));
+		gtk_widget_size_allocate_wa(PWidget(wOutput),
+			WaAlloc(x + w - moduleSize - outputSize - DIV_THICK, y, outputSize, h));
+	} else {
+		int subx = x + treeSize + DIV_THICK;
+		int subwidth = w - moduleSize - treeSize - 2 * DIV_THICK;
+
+		gtk_widget_size_allocate_wa(PWidget(wEditor),
+			WaAlloc(subx, y, subwidth, h - outputSize - DIV_THICK));
+		gtk_widget_size_allocate_wa(PWidget(wDividerM),
+			WaAlloc(subx, y + h - outputSize - DIV_THICK, subwidth, DIV_THICK));
+		gtk_widget_size_allocate_wa(PWidget(wOutput),
+			WaAlloc(subx, y + h - outputSize, subwidth, outputSize));
+	}
+	gtk_widget_size_allocate_wa(PWidget(wDividerR),	WaAlloc(x + w - moduleSize - DIV_THICK	, y, DIV_THICK, h));
+	gtk_widget_size_allocate_wa(PWidget(wModule),	WaAlloc(x + w - moduleSize		, y, w, 	h));
 }
 
 void SciTEGTK::SizeSubWindows() {
+	NormalizeSizes(false);
 	SizeContentWindows();
+}
+
+
+#ifdef unix
+static const char SEP = '/';
+#endif
+#ifdef WIN32
+// Windows
+static const char SEP = '\\';
+#endif
+
+
+int aaa = 0;
+
+bool SciTEGTK::ProcessFolder(GtkTreeIter *parent_iter, std::vector<FilePath>::iterator &it, int pos) {
+
+	GtkTreeIter iter;
+
+	for (;;) {
+		const GUI::gui_string &path = it->AsInternal();
+		size_t sep_next = path.find(SEP, pos);
+		//std::cout <<pos <<'\n';
+
+		gtk_tree_store_append (wTreeModel, &iter, parent_iter);
+
+		if (sep_next != GUI::gui_string::npos) {
+			// new folder
+			gtk_tree_store_set(wTreeModel, &iter, 0, path.substr(pos, sep_next - pos).c_str(), -1);
+			//std::cout << "\tFOLDER: " <<path.substr(pos, sep_next - pos) <<'\n';
+			if (ProcessFolder(&iter, it, sep_next + 1))
+				return true;
+
+		} else {
+			// file
+			gtk_tree_store_set(wTreeModel, &iter, 0, path.substr(pos, GUI::gui_string::npos).c_str(), -1);
+			//std::cout <<"\t\t" <<path.substr(pos, GUI::gui_string::npos) <<'\n';
+			it++;
+		}
+		if (it == project.files.end())
+			return true;
+
+		if (path.compare(0, pos, it->AsInternal(), pos))
+			return false;
+	}
+
+}
+
+void SciTEGTK::UpdateTree() {
+
+	gtk_tree_store_clear(wTreeModel);
+
+	std::vector<FilePath>::iterator it = project.files.begin();
+
+	if (it != project.files.end())
+		ProcessFolder(NULL, it, 0);
+}
+
+
+
+
+
+int SciTEGTK::QuickOpenFill(GtkListStore *store, GUI::gui_string glob) {
+
+	gtk_list_store_clear(store);
+	int cnt = 0;
+
+	for (std::vector<FilePath>::iterator it = project.files.begin();  it != project.files.end(); it++)
+	{
+		GtkTreeIter iter;
+		if (glob.empty() || glob_match(it->AsInternal(), glob.c_str())) {
+			gtk_list_store_append(store, &iter);
+			gtk_list_store_set(store, &iter, 0, it->AsInternal(), -1);
+			cnt++;
+		}
+	}
+	return cnt;
+}
+
+
+void SciTEGTK::QuickOpenResponse(GtkWidget *w, gint resp, SciTEGTK *scitew) {
+
+	std::cout <<"Response " <<resp <<'\n';
+
+	if (resp == 1 || resp == 2) {
+
+		GList *children = gtk_container_get_children(GTK_CONTAINER(GTK_DIALOG(w)->vbox));
+		GtkTreeView *list = (GtkTreeView*) gtk_bin_get_child(GTK_BIN(children->next->data));
+		g_list_free(children);
+
+		GtkTreeSelection *selection = gtk_tree_view_get_selection(list);
+		GtkListStore *store = (GtkListStore*) gtk_tree_view_get_model(list);
+
+		GtkTreeIter iter;
+		gboolean valid = gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &iter);
+
+		while (valid) {
+
+			if (resp == 1 || gtk_tree_selection_iter_is_selected (selection, &iter)) {
+				gchar *path;
+				gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, 0, &path, -1);
+
+				std::cout <<"  open: " <<path <<'\n';
+
+				scitew->Open(scitew->project.path + path, ofNone);
+
+			}
+
+			valid = gtk_tree_model_iter_next(GTK_TREE_MODEL(store), &iter);
+		}
+
+	}
+
+	gtk_widget_destroy(w);
+}
+
+
+gboolean SciTEGTK::QuickOpenPress(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
+
+	(void) scitew;
+
+	if (0) if (event->keyval == GDK_Up || event->keyval == GDK_Down) {
+
+
+		GtkWidget *box = gtk_widget_get_parent(w);
+		GList *children = gtk_container_get_children(GTK_CONTAINER(box));
+		GtkWidget *list = gtk_bin_get_child(GTK_BIN(children->next->data));
+		g_list_free(children);
+		gtk_widget_event(list, (GdkEvent*)event);
+
+		return TRUE;
+
+		/*
+
+		GtkWidget *box = gtk_widget_get_parent(w);
+		std::cout <<"A: " <<GTK_OBJECT_TYPE_NAME(box) <<'\n';
+		GList *children = gtk_container_get_children(GTK_CONTAINER(box));
+		//std::cout <<"B: " <<GTK_OBJECT_TYPE_NAME(children->data) <<'\n';
+		//std::cout <<"C: " <<GTK_OBJECT_TYPE_NAME(children->next->data) <<'\n';
+
+		GtkTreeView *list = (GtkTreeView*) gtk_bin_get_child(GTK_BIN(children->next->data));
+		//std::cout <<"D: " <<GTK_OBJECT_TYPE_NAME(gtk_bin_get_child(GTK_BIN(children->next->data))) <<'\n';
+		//std::cout <<"E: " <<gtk_bin_get_child(GTK_BIN(children->next->next->data)) <<'\n';
+		//std::cout  <<'\n';
+		g_list_free(children);
+
+		GtkTreeSelection *selection = gtk_tree_view_get_selection(list);
+		//GtkListStore *store = (GtkListStore*) gtk_tree_view_get_model(list);
+
+		GList *treepaths = gtk_tree_selection_get_selected_rows(selection, NULL);
+
+		if (event->state & GDK_SHIFT_MASK) {
+
+
+		} else {
+			gtk_tree_selection_unselect_all(selection);
+
+			if (event->keyval == GDK_Up) {
+				gtk_tree_path_prev((GtkTreePath*) g_list_first(treepaths)->data);
+				gtk_tree_selection_select_path(selection, (GtkTreePath*) g_list_first(treepaths)->data);
+
+
+
+
+			} else if (event->keyval == GDK_Down) {
+				gtk_tree_path_next((GtkTreePath*) g_list_last(treepaths)->data);
+				gtk_tree_selection_select_path(selection, (GtkTreePath*) g_list_last(treepaths)->data);
+
+			}
+
+		}
+
+		g_list_foreach(treepaths, (GFunc)gtk_tree_path_free, NULL);
+		g_list_free(treepaths);
+
+		return TRUE;
+		*/
+	}
+
+	return FALSE;
+}
+
+gboolean SciTEGTK::QuickOpenKeyList(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
+
+	(void) scitew;
+	GtkWidget *dialog = gtk_widget_get_parent(gtk_widget_get_parent(gtk_widget_get_parent(w)));
+
+	if (event->keyval == GDK_Return || event->keyval == GDK_KP_Enter || event->keyval == GDK_ISO_Enter) {
+
+		gtk_dialog_response(GTK_DIALOG(dialog), 2);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+
+gboolean SciTEGTK::QuickOpenRelease(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
+
+	GtkWidget *dialog = gtk_widget_get_parent(gtk_widget_get_parent(w));
+	if (event->keyval == GDK_Escape) {
+		//gtk_signal_emit_stop_by_name(GTK_OBJECT(w), "key-press-event");
+		gtk_widget_destroy(dialog);
+		return TRUE;
+
+	} else if (event->keyval == GDK_Return || event->keyval == GDK_KP_Enter || event->keyval == GDK_ISO_Enter) {
+
+		gtk_dialog_response(GTK_DIALOG(dialog), 2);
+		return TRUE;
+
+	} else if (event->keyval == GDK_Up || event->keyval == GDK_Down) {
+
+		return FALSE;
+
+	} else {
+		gboolean ret = FALSE;
+
+		//std::cout <<"KEY: " <<(int)event->keyval <<" [[" <<(char) event->keyval <<"]] : <<"  <<gtk_entry_get_text(GTK_ENTRY(w)) <<">>  (" <<ret  <<")\n";
+
+		GUI::gui_string glob;
+
+		if (*gtk_entry_get_text(GTK_ENTRY(w)) && glob_check(gtk_entry_get_text(GTK_ENTRY(w)))) {
+			if (*gtk_entry_get_text(GTK_ENTRY(w)) != '*')
+				glob.assign("**");
+
+			glob.append(gtk_entry_get_text(GTK_ENTRY(w)));
+
+			if (glob[glob.size()-1] != '*')
+				glob.append("**");
+		}
+
+		GtkWidget *box = gtk_widget_get_parent(w);
+		GList *children = gtk_container_get_children(GTK_CONTAINER(box));
+		GtkWidget *list = gtk_bin_get_child(GTK_BIN(children->next->data));
+		g_list_free(children);
+
+		GtkListStore *store = (GtkListStore*) gtk_tree_view_get_model(GTK_TREE_VIEW(list));
+
+		int cnt = scitew->QuickOpenFill(store, glob);
+
+		gtk_dialog_set_response_sensitive(GTK_DIALOG(dialog), 1, cnt);
+		gtk_dialog_set_response_sensitive(GTK_DIALOG(dialog), 2, cnt);
+
+		if (gtk_tree_selection_count_selected_rows(gtk_tree_view_get_selection(GTK_TREE_VIEW(list))) == 0) {
+			GtkTreeIter first;
+			gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &first);
+			//gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(list)), &first);
+		}
+
+		return ret;
+	}
+
+}
+
+#if 0
+gboolean dbgevt(GtkWidget *widget, GdkEvent  *event, gpointer   user_data) {
+
+	std::cout <<"EVT RECEIVED " <<event->type   <<"  "  <<user_data  <<'\n';
+	//<<GTK_OBJECT_TYPE_NAME(gtk_bin_get_child(GTK_BIN(children->next->data))) <<'\n';
+	return FALSE;
+}
+#endif
+
+void SciTEGTK::QuickOpen() {
+
+	GtkWidget *dialog = gtk_dialog_new_with_buttons ("Quick open",
+		GTK_WINDOW(wSciTE.GetID()),
+		(GtkDialogFlags) GTK_DIALOG_DESTROY_WITH_PARENT,
+		"_Cancel", GTK_RESPONSE_CANCEL,
+		"Open _All", 1,
+		"Open _Selected", 2,
+		NULL);
+
+	GtkWidget *entry = gtk_entry_new();
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), entry, FALSE, FALSE, 0);
+
+	//g_signal_connect(toggle, "key-press-event", G_CALLBACK(QuickOpenRelease), NULL);
+	//gtk_signal_connect(GTK_OBJECT(entry), "key-press-event", GtkSignalFunc(QuickOpenPress), this);
+	gtk_signal_connect(GTK_OBJECT(entry), "key-release-event", GtkSignalFunc(QuickOpenRelease), this);
+
+
+	GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
+	//gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scroll), GTK_SHADOW_ETCHED_IN);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), scroll, TRUE, TRUE, 0);
+
+	/* create tree model */
+	GtkListStore *store = gtk_list_store_new (1, G_TYPE_STRING);
+
+	/* add data to the list store */
+	QuickOpenFill(store, "");
+
+	/* create tree view */
+	GtkWidget *list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+	GtkTreeSelection* selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
+	gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
+	//gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(list), TRUE);
+	//gtk_tree_view_set_search_column(GTK_TREE_VIEW(list), COLUMN_DESCRIPTION);
+	//gtk_window_set_accept_focus(GTK_WINDOW(list), FALSE);
+
+	gtk_signal_connect(GTK_OBJECT(list), "key-press-event", GtkSignalFunc(QuickOpenKeyList), this);
+
+
+  	GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(list), -1, NULL, renderer, "text", 0, NULL);
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(list), FALSE);
+
+	g_object_unref(store);
+
+	gtk_container_add(GTK_CONTAINER(scroll), list);
+
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 400, 600);
+	gtk_signal_connect(GTK_OBJECT(dialog), "response", GtkSignalFunc(QuickOpenResponse), this);
+	gtk_dialog_set_default_response(GTK_DIALOG(dialog), 2);
+
+	gtk_widget_show_all(dialog);
+
+	//gtk_widget_show_alldialog);
 }
 
 void SciTEGTK::SetMenuItem(int, int, int itemID, const char *text, const char *mnemonic) {
@@ -1512,7 +1883,7 @@ void SciTEGTK::FindInFilesCmd() {
 		findCommand += " \"";
 		findCommand += props.Get("find.files");
 		findCommand += "\" \"";
-		char *quotedForm = Slash(props.Get("find.what").c_str(), true);
+		char *quotedForm = Slash(props.Get("find.what").c_str(), true, false);
 		findCommand += quotedForm;
 		findCommand += "\"";
 		delete []quotedForm;
@@ -1591,7 +1962,14 @@ void SciTEGTK::FindInFiles() {
 	SelectionIntoFind();
 	props.Set("find.what", findWhat.c_str());
 
-	FilePath findInDir = filePath.Directory().AbsolutePath();
+
+	// MODIFAC
+	FilePath findInDir;
+	if (project.opened)
+		findInDir = project.path.AbsolutePath();
+	else
+		findInDir = filePath.Directory().AbsolutePath();
+
 	props.Set("find.directory", findInDir.AsInternal());
 
 	dlgFindInFiles.Create(this, "Find in Files", &localiser);
@@ -2197,7 +2575,12 @@ void SciTEGTK::QuitProgram() {
 	}
 }
 
-gint SciTEGTK::MoveResize(GtkWidget *, GtkAllocation * /*allocation*/, SciTEGTK *scitew) {
+gint SciTEGTK::MoveResize(GtkWidget *w, GtkAllocation *alloc, SciTEGTK *scitew) {
+
+	//printf("nsize: %4d %4d - %4d %4d  ->  %4d %4d - %4d %4d\n",
+	//	w->allocation.x, w->allocation.y, w->allocation.width, w->allocation.height,
+	//	alloc->x, alloc->y, alloc->width, alloc->height);
+
 	scitew->SizeSubWindows();
 	return TRUE;
 }
@@ -2242,24 +2625,30 @@ public:
 };
 
 enum {
-    m__ = 0,
-    mS_ = GDK_SHIFT_MASK,
-    m_C = GDK_CONTROL_MASK,
-    mSC = GDK_SHIFT_MASK | GDK_CONTROL_MASK
+    m___ = 0,
+    mS__ = GDK_SHIFT_MASK,
+    m_C_ = GDK_CONTROL_MASK,
+    m__A = GDK_MOD1_MASK,
+    mSC_ = mS__ | m_C_,
+    mS_A = mS__ | m__A,
+    m_CA = m_C_ | m__A,
+    mSCA = mS__ | m_C_ | m__A
 };
 
 static KeyToCommand kmap[] = {
-                                 {m_C, GDK_Tab, IDM_NEXTFILE},
-                                 {mSC, GDK_ISO_Left_Tab, IDM_PREVFILE},
-                                 {m_C, GDK_KP_Enter, IDM_COMPLETEWORD},
-                                 {m_C, GDK_F3, IDM_FINDNEXTSEL},
-                                 {mSC, GDK_F3, IDM_FINDNEXTBACKSEL},
-                                 {m_C, GDK_F4, IDM_CLOSE},
-                                 {m_C, 'j', IDM_PREVMATCHPPC},
-                                 {mSC, 'J', IDM_SELECTTOPREVMATCHPPC},
-                                 {m_C, 'k', IDM_NEXTMATCHPPC},
-                                 {mSC, 'K', IDM_SELECTTONEXTMATCHPPC},
-                                 {m_C, GDK_KP_Multiply, IDM_EXPAND},
+                                 {m_C_, GDK_Tab, IDM_NEXTFILE},
+                                 {mSC_, GDK_ISO_Left_Tab, IDM_PREVFILE},
+                                 {m_C_, GDK_KP_Enter, IDM_COMPLETEWORD},
+                                 {m_C_, GDK_F3, IDM_FINDNEXTSEL},
+                                 {mSC_, GDK_F3, IDM_FINDNEXTBACKSEL},
+                                 {m_C_, GDK_F4, IDM_CLOSE},
+                                 {m_C_, 'j', IDM_PREVMATCHPPC},
+                                 {mSC_, 'J', IDM_SELECTTOPREVMATCHPPC},
+                                 {m_C_, 'k', IDM_NEXTMATCHPPC},
+                                 {mSC_, 'K', IDM_SELECTTONEXTMATCHPPC},
+                                 {m_CA, GDK_Left, IDM_MOVETABLEFT},
+                                 {m_CA, GDK_Right, IDM_MOVETABRIGHT},
+                                 {m_C_, GDK_KP_Multiply, IDM_EXPAND},
                                  {0, 0, 0},
                              };
 
@@ -2334,7 +2723,7 @@ gint SciTEGTK::Key(GdkEventKey *event) {
 	return 0;
 }
 
-void SciTEGTK::AddToPopUp(const char *label, int cmd, bool enabled) {
+void SciTEGTK::AddToPopUp(const char *label, guint cmd, bool enabled) {
 	GUI::gui_string localised = localiser.Text(label);
 	localised.insert(0, "/");
 	GtkItemFactoryEntry itemEntry = {
@@ -2384,7 +2773,7 @@ gint SciTEGTK::Mouse(GdkEventButton *event) {
 	return FALSE;
 }
 
-void SciTEGTK::DividerXOR(GUI::Point pt) {
+void SciTEGTK::DividerXOR(GtkWidget *divider, GUI::Point pt) {
 	if (!xor_gc) {
 		GdkGCValues values;
 		values.foreground = PWidget(wSciTE)->style->white;
@@ -2395,23 +2784,24 @@ void SciTEGTK::DividerXOR(GUI::Point pt) {
 		                                static_cast<GdkGCValuesMask>(
 		                                    GDK_GC_FOREGROUND | GDK_GC_FUNCTION | GDK_GC_SUBWINDOW));
 	}
-	if (splitVertical) {
+	if (divider->allocation.width > divider->allocation.height) {
+		// Horizontal divider
 		gdk_draw_line(PWidget(wSciTE)->window, xor_gc,
-		              pt.x,
-		              PWidget(wDivider)->allocation.y,
-		              pt.x,
-		              PWidget(wDivider)->allocation.y + PWidget(wDivider)->allocation.height - 1);
+		              divider->allocation.x,
+		              pt.y,
+		              divider->allocation.x + divider->allocation.width - 1,
+		              pt.y);
 	} else {
 		gdk_draw_line(PWidget(wSciTE)->window, xor_gc,
-		              PWidget(wDivider)->allocation.x,
-		              pt.y,
-		              PWidget(wDivider)->allocation.x + PWidget(wDivider)->allocation.width - 1,
-		              pt.y);
+		              pt.x,
+		              divider->allocation.y,
+		              pt.x,
+		              divider->allocation.y + divider->allocation.height - 1);
 	}
 	ptOld = pt;
 }
 
-gint SciTEGTK::DividerExpose(GtkWidget *widget, GdkEventExpose *, SciTEGTK *sciThis) {
+gint SciTEGTK::DividerExpose(GtkWidget *widget, GdkEventExpose *, SciTEGTK *) {
 	//GtkStyle style = gtk_widget_get_default_style();
 	GdkRectangle area;
 	area.x = 0;
@@ -2425,30 +2815,30 @@ gint SciTEGTK::DividerExpose(GtkWidget *widget, GdkEventExpose *, SciTEGTK *sciT
 		gtk_paint_hline(widget->style, widget->window, GTK_STATE_NORMAL,
 		                &area, widget, const_cast<char *>("vpaned"),
 		                0, widget->allocation.width - 1,
-		                area.height / 2 - 1);
+		                DIV_THICK / 2 - 1);
 		gtk_paint_box (widget->style, widget->window,
 		               GTK_STATE_NORMAL,
 		               GTK_SHADOW_OUT,
 		               &area, widget, const_cast<char *>("paned"),
-		               area.width - sciThis->heightBar * 2, 1,
-		               sciThis->heightBar - 2, sciThis->heightBar - 2);
+		               area.width - DIV_THICK * 2, 1,
+		               DIV_THICK - 2, DIV_THICK - 2);
 	} else {
 		// Vertical divider
 		gtk_paint_vline(widget->style, widget->window, GTK_STATE_NORMAL,
 		                &area, widget, const_cast<char *>("hpaned"),
 		                0, widget->allocation.height - 1,
-		                area.width / 2 - 1);
+		                DIV_THICK / 2 - 1);
 		gtk_paint_box (widget->style, widget->window,
 		               GTK_STATE_NORMAL,
 		               GTK_SHADOW_OUT,
 		               &area, widget, const_cast<char *>("paned"),
-		               1, area.height - sciThis->heightBar * 2,
-		               sciThis->heightBar - 2, sciThis->heightBar - 2);
+		               1, area.height - DIV_THICK * 2,
+		               DIV_THICK - 2, DIV_THICK - 2);
 	}
 	return TRUE;
 }
 
-gint SciTEGTK::DividerMotion(GtkWidget *, GdkEventMotion *event, SciTEGTK *scitew) {
+gint SciTEGTK::DividerMotion(GtkWidget *divider, GdkEventMotion *event, SciTEGTK *scitew) {
 	if (scitew->capturedMouse) {
 		int x = 0;
 		int y = 0;
@@ -2456,15 +2846,15 @@ gint SciTEGTK::DividerMotion(GtkWidget *, GdkEventMotion *event, SciTEGTK *scite
 		if (event->is_hint) {
 			gdk_window_get_pointer(PWidget(scitew->wSciTE)->window, &x, &y, &state);
 			if (state & GDK_BUTTON1_MASK) {
-				scitew->DividerXOR(scitew->ptOld);
-				scitew->DividerXOR(GUI::Point(x, y));
+				scitew->DividerXOR(divider, scitew->ptOld);
+				scitew->DividerXOR(divider, GUI::Point(x, y));
 			}
 		}
 	}
 	return TRUE;
 }
 
-gint SciTEGTK::DividerPress(GtkWidget *, GdkEventButton *event, SciTEGTK *scitew) {
+gint SciTEGTK::DividerPress(GtkWidget *divider, GdkEventButton *event, SciTEGTK *scitew) {
 	if (event->type == GDK_BUTTON_PRESS) {
 		int x = 0;
 		int y = 0;
@@ -2472,7 +2862,8 @@ gint SciTEGTK::DividerPress(GtkWidget *, GdkEventButton *event, SciTEGTK *scitew
 		gdk_window_get_pointer(PWidget(scitew->wSciTE)->window, &x, &y, &state);
 		scitew->ptStartDrag = GUI::Point(x, y);
 		scitew->capturedMouse = true;
-		scitew->heightOutputStartDrag = scitew->heightOutput;
+
+		//scitew->heightOutputStartDrag = scitew->heightOutput;
 		scitew->focusEditor = scitew->wEditor.Call(SCI_GETFOCUS) != 0;
 		if (scitew->focusEditor) {
 			scitew->wEditor.Call(SCI_SETFOCUS, 0);
@@ -2481,24 +2872,46 @@ gint SciTEGTK::DividerPress(GtkWidget *, GdkEventButton *event, SciTEGTK *scitew
 		if (scitew->focusOutput) {
 			scitew->wOutput.Call(SCI_SETFOCUS, 0);
 		}
-		gtk_widget_grab_focus(GTK_WIDGET(PWidget(scitew->wDivider)));
-		gtk_grab_add(GTK_WIDGET(PWidget(scitew->wDivider)));
-		gtk_widget_draw(PWidget(scitew->wDivider), NULL);
-		scitew->DividerXOR(scitew->ptStartDrag);
+		gtk_widget_grab_focus(GTK_WIDGET(divider));
+		gtk_grab_add(GTK_WIDGET(divider));
+		gtk_widget_draw(divider, NULL);
+		scitew->DividerXOR(divider, scitew->ptStartDrag);
 	}
 	return TRUE;
 }
 
-gint SciTEGTK::DividerRelease(GtkWidget *, GdkEventButton *, SciTEGTK *scitew) {
+gint SciTEGTK::DividerRelease(GtkWidget *divider, GdkEventButton *, SciTEGTK *scitew) {
 	if (scitew->capturedMouse) {
 		scitew->capturedMouse = false;
-		gtk_grab_remove(GTK_WIDGET(PWidget(scitew->wDivider)));
-		scitew->DividerXOR(scitew->ptOld);
+		gtk_grab_remove(GTK_WIDGET(divider));
+		scitew->DividerXOR(divider, scitew->ptOld);
 		int x = 0;
 		int y = 0;
 		GdkModifierType state;
 		gdk_window_get_pointer(PWidget(scitew->wSciTE)->window, &x, &y, &state);
-		scitew->MoveSplit(GUI::Point(x, y));
+
+		if (divider == PWidget(scitew->wDividerL))
+			scitew->treeSize += x - scitew->ptStartDrag.x;
+
+		else if (divider == PWidget(scitew->wDividerR))
+			scitew->moduleSize -= x - scitew->ptStartDrag.x;
+
+		else if (divider == PWidget(scitew->wDividerM)) {
+			if (scitew->splitVertical)
+				scitew->outputSize -= x - scitew->ptStartDrag.x;
+
+			else
+				scitew->outputSize -= y - scitew->ptStartDrag.y;
+		} else {
+			//HHH(divider)
+			//HHH(PWidget(scitew->wDividerL))
+			//HHH(PWidget(scitew->wDividerM))
+			//HHH(PWidget(scitew->wDividerR))
+		}
+
+		scitew->NormalizeSizes(true);
+
+		scitew->SizeContentWindows();
 		if (scitew->focusEditor)
 			scitew->wEditor.Call(SCI_SETFOCUS, 1);
 		if (scitew->focusOutput)
@@ -2582,7 +2995,7 @@ GtkWidget *SciTEGTK::AddToolButton(const char *text, int cmd, GtkWidget *toolbar
 
 	gtk_signal_connect(GTK_OBJECT(button), "clicked",
 	                   GTK_SIGNAL_FUNC (ButtonSignal),
-	                   (gpointer)cmd);
+	                   GINT_TO_POINTER (cmd));
 	return button;
 }
 
@@ -2750,7 +3163,8 @@ void SciTEGTK::CreateMenu() {
 	SciTEItemFactoryEntry menuItems[] = {
 	                                      {"/_File", NULL, NULL, 0, "<Branch>"},
 	                                      {"/File/_New", "<control>N", menuSig, IDM_NEW, 0},
-	                                      {"/File/_Open...", "<control>O", menuSig, IDM_OPEN, 0},
+	                                      {"/File/_Open...", "<control><shift>O", menuSig, IDM_OPEN, 0},
+	                                      {"/File/_Quick Open...", "<control>O", menuSig, IDM_OPENQUICK, 0},
 	                                      {"/File/Open Selected _Filename", "<control><shift>O", menuSig, IDM_OPENSELECTED, 0},
 	                                      {"/File/_Revert", "<control>R", menuSig, IDM_REVERT, 0},
 	                                      {"/File/_Close", "<control>W", menuSig, IDM_CLOSE, 0},
@@ -2845,13 +3259,15 @@ void SciTEGTK::CreateMenu() {
 	                                      {"/View/_Line Numbers", "", menuSig, IDM_LINENUMBERMARGIN, "<CheckItem>"},
 	                                      {"/View/_Margin", NULL, menuSig, IDM_SELMARGIN, "<CheckItem>"},
 	                                      {"/View/_Fold Margin", NULL, menuSig, IDM_FOLDMARGIN, "<CheckItem>"},
-	                                      {"/View/_Output", "F8", menuSig, IDM_TOGGLEOUTPUT, "<CheckItem>"},
+	                                      {"/View/_Tree", "F6", menuSig, IDM_TOGGLETREE, "<CheckItem>"},
+	                                      {"/View/_Output", "F7", menuSig, IDM_TOGGLEOUTPUT, "<CheckItem>"},
+	                                      {"/View/M_odule", "F8", menuSig, IDM_TOGGLEMODULE, "<CheckItem>"},
 	                                      {"/View/_Parameters", NULL, menuSig, IDM_TOGGLEPARAMETERS, "<CheckItem>"},
 
 	                                      {"/_Tools", NULL, NULL, 0, "<Branch>"},
-	                                      {"/Tools/_Compile", "<control>F7", menuSig, IDM_COMPILE, 0},
-	                                      {"/Tools/_Build", "F7", menuSig, IDM_BUILD, 0},
-	                                      {"/Tools/_Go", "F5", menuSig, IDM_GO, 0},
+	                                      {"/Tools/_Compile", NULL, menuSig, IDM_COMPILE, 0},
+	                                      {"/Tools/_Build", NULL, menuSig, IDM_BUILD, 0},
+	                                      {"/Tools/_Go", NULL, menuSig, IDM_GO, 0},
 
 	                                      {"/Tools/Tool0", NULL, menuSig, IDM_TOOLS + 0, 0},
 	                                      {"/Tools/Tool1", NULL, menuSig, IDM_TOOLS + 1, 0},
@@ -2949,8 +3365,8 @@ void SciTEGTK::CreateMenu() {
 
 	SciTEItemFactoryEntry menuItemsBuffer[] = {
 	                                            {"/_Buffers", NULL, NULL, 0, "<Branch>"},
-	                                            {"/Buffers/_Previous", "<shift>F6", menuSig, IDM_PREVFILE, 0},
-	                                            {"/Buffers/_Next", "F6", menuSig, IDM_NEXTFILE, 0},
+	                                            {"/Buffers/_Previous", "<alt>Left", menuSig, IDM_PREVFILE, 0},
+	                                            {"/Buffers/_Next", "<alt>Right", menuSig, IDM_NEXTFILE, 0},
 	                                            {"/Buffers/_Close All", "", menuSig, IDM_CLOSEALL, 0},
 	                                            {"/Buffers/_Save All", "", menuSig, IDM_SAVEALL, 0},
 	                                            {"/Buffers/sep2", NULL, NULL, 0, "<Separator>"},
@@ -2986,6 +3402,46 @@ void SciTEGTK::CreateMenu() {
 	CreateTranslatedMenu(ELEMENTS(menuItemsHelp), menuItemsHelp);
 	gtk_window_add_accel_group(GTK_WINDOW(PWidget(wSciTE)), accelGroup);
 }
+
+
+void SciTEGTK::DividerNew(GUI::Window &divider, GUI::Window &container) {
+
+	divider = gtk_drawing_area_new();
+
+	gtk_signal_connect(GTK_OBJECT(PWidget(divider)), "expose_event",
+	                   GtkSignalFunc(DividerExpose), this);
+	gtk_signal_connect(GTK_OBJECT(PWidget(divider)), "motion_notify_event",
+	                   GtkSignalFunc(DividerMotion), this);
+	gtk_signal_connect(GTK_OBJECT(PWidget(divider)), "button_press_event",
+	                   GtkSignalFunc(DividerPress), this);
+	gtk_signal_connect(GTK_OBJECT(PWidget(divider)), "button_release_event",
+	                   GtkSignalFunc(DividerRelease), this);
+	gtk_widget_set_events(PWidget(divider),
+	                      GDK_EXPOSURE_MASK
+	                      | GDK_LEAVE_NOTIFY_MASK
+	                      | GDK_BUTTON_PRESS_MASK
+	                      | GDK_BUTTON_RELEASE_MASK
+	                      | GDK_POINTER_MOTION_MASK
+	                      | GDK_POINTER_MOTION_HINT_MASK
+	                     );
+
+	gtk_drawing_area_size(GTK_DRAWING_AREA(PWidget(divider)), 10, 100);
+	gtk_fixed_put(GTK_FIXED(PWidget(container)), PWidget(divider), 100, 0);
+
+}
+
+void SciTEGTK::DividerCursorSet(GUI::Window &divider, bool vertical) {
+
+	GdkCursor *cur;
+	if (vertical)
+		cur = gdk_cursor_new(GDK_SB_H_DOUBLE_ARROW);
+	else
+		cur = gdk_cursor_new(GDK_SB_V_DOUBLE_ARROW);
+
+	gdk_window_set_cursor(PWidget(divider)->window, cur);
+	gdk_cursor_unref(cur);
+}
+
 
 void SciTEGTK::CreateUI() {
 	CreateBuffers();
@@ -3081,6 +3537,7 @@ void SciTEGTK::CreateUI() {
 	gtk_notebook_set_scrollable(GTK_NOTEBOOK(PWidget(wTabBar)), TRUE);
 	tabVisible = false;
 
+	// wContent. All size below are temporary and will be updated
 	wContent = gtk_fixed_new();
 	GTK_WIDGET_UNSET_FLAGS(PWidget(wContent), GTK_CAN_FOCUS);
 	gtk_box_pack_start(GTK_BOX(boxMain), PWidget(wContent), TRUE, TRUE, 0);
@@ -3088,44 +3545,61 @@ void SciTEGTK::CreateUI() {
 	gtk_signal_connect(GTK_OBJECT(PWidget(wContent)), "size_allocate",
 	                   GTK_SIGNAL_FUNC(MoveResize), gthis);
 
+	// wDividerL
+	DividerNew(wDividerL, wContent);
+
+	// wDividerM
+	DividerNew(wDividerM, wContent);
+
+	// wDividerR
+	DividerNew(wDividerR, wContent);
+
+	// wTree
+	wTreeModel = gtk_tree_store_new (1, G_TYPE_STRING);
+
+	wTree = gtk_scrolled_window_new (NULL, NULL);
+	//gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(PWidget(wTree)),
+	//	GTK_SHADOW_ETCHED_IN);
+	//gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(PWidget(wTree)),
+	//	GTK_POLICY_AUTOMATIC,
+	//	GTK_POLICY_AUTOMATIC);
+	gtk_fixed_put(GTK_FIXED(PWidget(wContent)), PWidget(wTree), 0, 0);
+
+	wTreeView = gtk_tree_view_new_with_model(GTK_TREE_MODEL(wTreeModel));
+	gtk_container_add(GTK_CONTAINER(PWidget(wTree)), wTreeView);
+
+	//gtk_widget_show(PWidget(wContent));
+
+  	GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(wTreeView), -1, NULL, renderer, "text", 0, NULL);
+	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(wTreeView), FALSE);
+      	//g_signal_connect (wTreeView, "realize", G_CALLBACK (gtk_tree_view_expand_all), NULL);
+
+	// wEditor
 	wEditor.SetID(scintilla_new());
 	scintilla_set_id(SCINTILLA(PWidget(wEditor)), IDM_SRCWIN);
 	wEditor.Call(SCI_USEPOPUP, 0);
-	gtk_fixed_put(GTK_FIXED(PWidget(wContent)), PWidget(wEditor), 0, 0);
-
+	gtk_fixed_put(GTK_FIXED(PWidget(wContent)), PWidget(wEditor), 100, 0);
 	gtk_signal_connect(GTK_OBJECT(PWidget(wEditor)), "command",
 	                   GtkSignalFunc(CommandSignal), this);
 	gtk_signal_connect(GTK_OBJECT(PWidget(wEditor)), SCINTILLA_NOTIFY,
 	                   GtkSignalFunc(NotifySignal), this);
 
-	wDivider = gtk_drawing_area_new();
-	gtk_signal_connect(GTK_OBJECT(PWidget(wDivider)), "expose_event",
-	                   GtkSignalFunc(DividerExpose), this);
-	gtk_signal_connect(GTK_OBJECT(PWidget(wDivider)), "motion_notify_event",
-	                   GtkSignalFunc(DividerMotion), this);
-	gtk_signal_connect(GTK_OBJECT(PWidget(wDivider)), "button_press_event",
-	                   GtkSignalFunc(DividerPress), this);
-	gtk_signal_connect(GTK_OBJECT(PWidget(wDivider)), "button_release_event",
-	                   GtkSignalFunc(DividerRelease), this);
-	gtk_widget_set_events(PWidget(wDivider),
-	                      GDK_EXPOSURE_MASK
-	                      | GDK_LEAVE_NOTIFY_MASK
-	                      | GDK_BUTTON_PRESS_MASK
-	                      | GDK_BUTTON_RELEASE_MASK
-	                      | GDK_POINTER_MOTION_MASK
-	                      | GDK_POINTER_MOTION_HINT_MASK
-	                     );
-	gtk_drawing_area_size(GTK_DRAWING_AREA(PWidget(wDivider)), (width == useDefault) ? 100 : width, 10);
-	gtk_fixed_put(GTK_FIXED(PWidget(wContent)), PWidget(wDivider), 0, 600);
-
+	// wOutput
 	wOutput.SetID(scintilla_new());
 	scintilla_set_id(SCINTILLA(PWidget(wOutput)), IDM_RUNWIN);
 	wOutput.Call(SCI_USEPOPUP, 0);
-	gtk_fixed_put(GTK_FIXED(PWidget(wContent)), PWidget(wOutput), (width == useDefault) ? 100 : width, 0);
+	gtk_fixed_put(GTK_FIXED(PWidget(wContent)), PWidget(wOutput), 100, 100);
 	gtk_signal_connect(GTK_OBJECT(PWidget(wOutput)), "command",
 	                   GtkSignalFunc(CommandSignal), this);
 	gtk_signal_connect(GTK_OBJECT(PWidget(wOutput)), SCINTILLA_NOTIFY,
 	                   GtkSignalFunc(NotifySignal), this);
+
+
+	// wModule
+	wModule = gtk_tree_view_new();
+	gtk_fixed_put(GTK_FIXED(PWidget(wContent)), PWidget(wModule), 300, 0);
+
 
 	Table table(1, 2);
 	wIncrementPanel = table.Widget();
@@ -3166,7 +3640,25 @@ void SciTEGTK::CreateUI() {
 	if ((width != useDefault) && (height != useDefault))
 		gtk_window_set_default_size(GTK_WINDOW(PWidget(wSciTE)), width, height);
 	gtk_widget_show_all(PWidget(wSciTE));
+
+	// wDividerL
+	DividerCursorSet(wDividerL, true);
+
+	// wDividerM
+	DividerCursorSet(wDividerM, splitVertical);
+
+	// wDividerR
+	DividerCursorSet(wDividerR, true);
+
 	SetIcon();
+
+	treeRatio = 1.0 / 8.0;
+	moduleRatio = 1.0 / 8.0;
+
+	if (splitVertical)
+		outputRatio = 1.0 / 4.0;
+	else
+		outputRatio = 1.0 / 6.0;
 
 	if (maximize)
 		gtk_window_maximize(GTK_WINDOW(PWidget(wSciTE)));
@@ -3223,7 +3715,7 @@ void SciTEGTK::SetIcon() {
 	GdkPixbuf *icon_pix_buf = CreatePixbuf("Sci48M.png");
 	if (icon_pix_buf) {
 		gtk_window_set_icon(GTK_WINDOW(PWidget(wSciTE)), icon_pix_buf);
-		gdk_pixbuf_unref(icon_pix_buf);
+		g_object_unref(icon_pix_buf);
 		return;
 	}
 	GtkStyle *style = gtk_widget_get_style(PWidget(wSciTE));

@@ -192,6 +192,8 @@ public:
 	bool operator!=(const char *sOther) const {
 		return !operator==(sOther);
 	}
+	operator bool() const { return !!sLen; }
+
 	bool contains(char ch) const {
 		return (s && *s) ? strchr(s, ch) != 0 : false;
 	}
@@ -213,6 +215,10 @@ public:
 	SString &lowercase(lenpos_t subPos = 0, lenpos_t subLen=measure_length);
 	SString &uppercase(lenpos_t subPos = 0, lenpos_t subLen=measure_length);
 	SString &append(const char *sOther, lenpos_t sLenOther=measure_length, char sep = '\0');
+	SString &append(int i) {
+		SString str = SString(i);
+		return append(str.s, str.sLen);
+	}
 	SString &operator+=(const char *sOther) {
 		return append(sOther, static_cast<lenpos_t>(measure_length));
 	}
@@ -222,6 +228,15 @@ public:
 	SString &operator+=(char ch) {
 		return append(&ch, 1);
 	}
+	SString operator+(const SString &add) const {
+		SString ret(s);
+		return ret += add;
+	}
+	SString operator+(int i) const {
+		SString ret(s);
+		return ret += SString(i);
+	}
+
 	SString &appendwithseparator(const char *sOther, char sep) {
 		return append(sOther, strlen(sOther), sep);
 	}

@@ -64,6 +64,19 @@ Rectangle Window::GetPosition() {
 	return rc;
 }
 
+int Window::GetLeft() {
+	return PWidget(wid)->allocation.x;
+}
+int Window::GetTop() {
+	return PWidget(wid)->allocation.y;
+}
+int Window::GetWidth() {
+	return PWidget(wid)->allocation.width;
+}
+int Window::GetHeight() {
+	return PWidget(wid)->allocation.height;
+}
+
 void Window::SetPosition(Rectangle rc) {
 	GtkAllocation alloc;
 	alloc.x = rc.left;

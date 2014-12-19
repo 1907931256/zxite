@@ -227,6 +227,7 @@ static IFaceConstant ifaceConstants[] = {
 	{"IDM_OPENGLOBALPROPERTIES",462},
 	{"IDM_OPENLOCALPROPERTIES",460},
 	{"IDM_OPENLUAEXTERNALFILE",464},
+	{"IDM_OPENQUICK",468},
 	{"IDM_OPENSELECTED",103},
 	{"IDM_OPENUSERPROPERTIES",461},
 	{"IDM_PASTE",205},
@@ -268,8 +269,10 @@ static IFaceConstant ifaceConstants[] = {
 	{"IDM_SWITCHPANE",421},
 	{"IDM_TABSIZE",440},
 	{"IDM_TABWIN",354},
+	{"IDM_TOGGLEMODULE",467},
 	{"IDM_TOGGLEOUTPUT",409},
 	{"IDM_TOGGLEPARAMETERS",412},
+	{"IDM_TOGGLETREE",466},
 	{"IDM_TOGGLE_FOLDALL",236},
 	{"IDM_TOGGLE_FOLDRECURSIVE",237},
 	{"IDM_TOOLS",1100},
@@ -2030,6 +2033,9 @@ static IFaceConstant ifaceConstants[] = {
 	{"SC_CACHE_DOCUMENT",3},
 	{"SC_CACHE_NONE",0},
 	{"SC_CACHE_PAGE",2},
+	{"SC_CARETSTICKY_OFF",0},
+	{"SC_CARETSTICKY_ON",1},
+	{"SC_CARETSTICKY_WHITESPACE",2},
 	{"SC_CASE_LOWER",2},
 	{"SC_CASE_MIXED",0},
 	{"SC_CASE_UPPER",1},
@@ -2487,7 +2493,7 @@ static IFaceProperty ifaceProperties[] = {
 	{"CaretLineBackAlpha", 2471, 2470, iface_int, iface_void},
 	{"CaretLineVisible", 2095, 2096, iface_bool, iface_void},
 	{"CaretPeriod", 2075, 2076, iface_int, iface_void},
-	{"CaretSticky", 2457, 2458, iface_bool, iface_void},
+	{"CaretSticky", 2457, 2458, iface_int, iface_void},
 	{"CaretStyle", 2513, 2512, iface_int, iface_void},
 	{"CaretWidth", 2189, 2188, iface_int, iface_void},
 	{"CharAt", 2007, 0, iface_int, iface_position},
@@ -2628,7 +2634,7 @@ static IFaceProperty ifaceProperties[] = {
 
 enum {
 	ifaceFunctionCount = 265,
-	ifaceConstantCount = 2053,
+	ifaceConstantCount = 2059,
 	ifacePropertyCount = 170
 };
 

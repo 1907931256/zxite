@@ -45,6 +45,8 @@
 
 #include <string>
 #include <map>
+#include <list>
+#include <vector>
 
 #include <gtk/gtk.h>
 
@@ -60,6 +62,7 @@
 #include "SciTE.h"
 #include "Mutex.h"
 #include "JobQueue.h"
+#include "Project.h"
 #include "SciTEBase.h"
 
 static ExtensionAPI *host = 0;

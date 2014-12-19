@@ -6257,7 +6257,7 @@ void Editor::StyleToPositionInView(Position pos) {
 	int styleAtEnd = pdoc->StyleAt(pos-1);
 	pdoc->EnsureStyledTo(pos);
 	if ((endWindow > pos) && (styleAtEnd != pdoc->StyleAt(pos-1))) {
-		// Style at end of line changed so is multi-line change like starting a comment 
+		// Style at end of line changed so is multi-line change like starting a comment
 		// so require rest of window to be styled.
 		pdoc->EnsureStyledTo(endWindow);
 	}

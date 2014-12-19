@@ -18,6 +18,8 @@
 
 #include <string>
 #include <map>
+#include <list>
+#include <vector>
 
 #if defined(GTK)
 
@@ -62,6 +64,7 @@
 #include "SciTE.h"
 #include "Mutex.h"
 #include "JobQueue.h"
+#include "Project.h"
 #include "SciTEBase.h"
 #include "Utf8_16.h"
 
@@ -948,9 +951,9 @@ void SciTEBase::OpenFromStdin(bool UseOutputPane) {
 	}
 	if (UseOutputPane) {
 		if (props.GetInt("split.vertical") == 0) {
-			heightOutput = 2000;
+			outputSize = 200;
 		} else {
-			heightOutput = 500;
+			outputSize = 500;
 		}
 		SizeSubWindows();
 	} else {

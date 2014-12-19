@@ -965,4 +965,13 @@ struct SCNotification {
 }
 #endif
 
+
+#define MMM printf("__%s__%d__\n", __FUNCTION__, __LINE__);
+#define TTT printf("__%s__%d__ @%08x\n", __FUNCTION__, __LINE__, NOW_MS());
+#define RRR printf("__%s__%d__ ->%p\n", __FUNCTION__, __LINE__, __builtin_return_address(0));
+#define DDD(x) printf("__%s__%d__ %d\n", __FUNCTION__, __LINE__, (x));
+#define HHH(x) printf("__%s__%d__ %x\n", __FUNCTION__, __LINE__, (uint32_t) (x));
+#define PPP(x) printf("__%s__%d__ %p\n", __FUNCTION__, __LINE__, (void*) (x));
+
+
 #endif

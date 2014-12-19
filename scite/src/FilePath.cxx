@@ -143,6 +143,10 @@ bool FilePath::IsUntitled() const {
 	return (dirEnd == GUI::gui_string::npos) || (!fileName[dirEnd+1]);
 }
 
+bool FilePath::IsFilename() const {
+	return fileName.find(pathSepChar) == GUI::gui_string::npos;
+}
+
 bool FilePath::IsAbsolute() const {
 	if (fileName.length() == 0)
 		return false;
@@ -594,6 +598,69 @@ void FilePath::FixName() {
 		}
 	}
 #endif
+}
+
+FilePath FilePath::operator+(const FilePath &add) const {
+	GUI::gui_string dup = fileName;
+
+	if (add.fileName.size()) {
+		int cnt_sep = (dup[dup.size()-1] == pathSepChar) + (add.AsInternal()[0] == pathSepChar);
+
+		if (cnt_sep == 0)
+			dup += pathSepChar;
+
+		else if (cnt_sep == 2)
+			dup.resize(dup.size()-1);
+
+		dup += add.AsInternal();
+	}
+
+	return FilePath(dup);
+}
+
+FilePath &FilePath::operator+=(const char *add) {
+	if (add[0]) {
+		int cnt_sep = (fileName[fileName.size()-1] == pathSepChar) + (add[0] == pathSepChar);
+
+		if (cnt_sep == 0)
+			fileName += (char) pathSepChar;
+
+		else if (cnt_sep == 2)
+			fileName.resize(fileName.size()-1);
+
+		fileName += add;
+	}
+
+	return *this;
+}
+
+bool FilePath::operator<(const FilePath &other) const {
+	const char *p1 = fileName.c_str();
+	const char *p2 = other.fileName.c_str();
+	for (;;) {
+		/* Filenames with / lower than without */
+		const char *n1 = strchr(p1, pathSepChar);
+		const char *n2 = strchr(p2, pathSepChar);
+		if (!n1 ^ !n2)
+			return n1;
+
+		/* Filenames with / lower than without */
+		while (p1 != n1 || p2 != n2) {
+			if (p2 == n2 || *p2 == '\0')
+				return false;
+			if (p1 == n1)
+				return true;
+			if (*p1 != *p2)
+				return *p1 < *p2;
+			p1++; p2++;
+		}
+		p1 = n1 + 1;
+		p2 = n2 + 1;
+	}
+}
+
+bool FilePath::operator==(const FilePath &other) const {
+	return strcmp(fileName.c_str(), other.fileName.c_str()) == 0;
 }
 
 FilePathSet::FilePathSet(int size_) {

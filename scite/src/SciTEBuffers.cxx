@@ -17,6 +17,8 @@
 
 #include <string>
 #include <map>
+#include <list>
+#include <vector>
 
 #if defined(GTK)
 
@@ -65,6 +67,7 @@
 #include "SciTE.h"
 #include "Mutex.h"
 #include "JobQueue.h"
+#include "Project.h"
 #include "SciTEBase.h"
 
 const GUI::gui_char defaultSessionFileName[] = GUI_TEXT("SciTE.session");

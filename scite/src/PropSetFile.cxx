@@ -17,6 +17,7 @@
 #pragma warning(disable: 4786)
 #endif
 
+#include <iostream>
 #include <string>
 #include <map>
 
@@ -58,6 +59,20 @@ PropSetFile::~PropSetFile() {
 	Clear();
 }
 
+/* Allow '++' in the prop name which will be expended to next integer */
+void PropSetFile::SetInc(const char *key, const char *inc, const char *val, int lenKey, int lenVal) {
+	char buf[8];
+	int i = 0;
+	std::string test;
+	do {
+		sprintf(buf, "%d", i++);
+		test.assign(key, inc - key).append(buf).append(inc + 2, lenKey - 2 - (inc - key));
+	} while (props.find(test) != props.end());
+
+	std::cout << "Setting " <<test << " = " << std::string(val, lenVal) << "\n";
+	props[test] = std::string(val, lenVal);
+}
+
 void PropSetFile::Set(const char *key, const char *val, int lenKey, int lenVal) {
 	if (!*key)	// Empty keys are not supported
 		return;
@@ -71,14 +86,29 @@ void PropSetFile::Set(const char *key, const char *val, int lenKey, int lenVal) 
 void PropSetFile::Set(const char *keyVal) {
 	while (IsASpace(*keyVal))
 		keyVal++;
-	const char *endVal = keyVal;
-	while (*endVal && (*endVal != '\n'))
-		endVal++;
-	const char *eqAt = strchr(keyVal, '=');
+
+	while (IsASpace(*keyVal))
+		keyVal++;
+	const char *p = keyVal;
+	const char *eqAt = NULL;
+	const char *incAt = NULL;
+	while (*p && *p != '\n') {
+		if (!eqAt) {
+			if (*p == '=')
+				eqAt = p;
+			if (p[0] == '+' && p[1] == '+')
+				incAt = p;
+		}
+		p++;
+	}
+
 	if (eqAt) {
-		Set(keyVal, eqAt + 1, eqAt-keyVal, endVal - eqAt - 1);
+		if (incAt)
+			SetInc(keyVal, incAt, eqAt + 1, eqAt-keyVal, p - eqAt - 1);
+		else
+			Set(keyVal, eqAt + 1, eqAt-keyVal, p - eqAt - 1);
 	} else if (*keyVal) {	// No '=' so assume '=1'
-		Set(keyVal, "1", endVal-keyVal, 1);
+		Set(keyVal, "1", p-keyVal, 1);
 	}
 }
 
@@ -580,18 +610,24 @@ SString &SString::assign(const char *sOther, lenpos_t sSize_) {
 }
 
 bool SString::operator==(const SString &sOther) const {
-	if ((s == 0) && (sOther.s == 0))
+	if ((sLen == 0) && (sOther.sLen == 0)) {
+		//printf("[%s[%d]=%s[%d]->T]", s, sLen, sOther.s, sOther.sLen);
 		return true;
-	if ((s == 0) || (sOther.s == 0))
+	}
+	if ((sLen == 0) || (sOther.sLen == 0)) {
+		//printf("[%s[%d]=%s[%d]->F]", s, sLen, sOther.s, sOther.sLen);
 		return false;
+	}
+	//printf("[%s[%d]=%s[%d]->%d]", s, sLen, sOther.s, sOther.sLen, strcmp(s, sOther.s));
 	return strcmp(s, sOther.s) == 0;
 }
 
 bool SString::operator==(const char *sOther) const {
-	if ((s == 0) && (sOther == 0))
+	if ((sLen == 0) && (sOther == NULL || sOther[0] == '\0'))
 		return true;
-	if ((s == 0) || (sOther == 0))
+	if ((sLen == 0) || (sOther == NULL || sOther[0] == '\0'))
 		return false;
+	//printf("[%s-%s-%d]", s, sOther, strcmp(s, sOther));
 	return strcmp(s, sOther) == 0;
 }
 

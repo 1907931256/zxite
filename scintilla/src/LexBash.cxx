@@ -397,7 +397,7 @@ static void ColouriseBashDoc(unsigned int startPos, int length, int initStyle,
 				}
 			} else if (setWordStart.Contains(sc.ch)) {
 				sc.SetState(SCE_SH_WORD);
-			} else if (sc.ch == '#') {
+			} else if (sc.ch == '#' && sc.chNext != '#') {
 				sc.SetState(SCE_SH_COMMENTLINE);
 			} else if (sc.ch == '\"') {
 				sc.SetState(SCE_SH_STRING);

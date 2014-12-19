@@ -90,6 +90,10 @@ public:
 	void Show(bool show=true);
 	void InvalidateAll();
 	void SetTitle(const gui_char *s);
+	int GetLeft();
+	int GetTop();
+	int GetWidth();
+	int GetHeight();
 };
 
 typedef void *MenuID;
