@@ -1,0 +1,432 @@
+// split_vector template class
+// A split vector is similar to a vector except that insertion
+// and deletion of items at any position is often much more
+// efficient that with vector as fewer items are moved.
+// Explanation: http://www.cs.cmu.edu/~wjh/papers/byte.html
+// Implemented 2002 by Neil Hodgson neilh@scintilla.org
+// Released to the public domain.
+
+// TODO: Support allocators correctly for all environments.
+
+#ifdef _MSC_VER
+// Microsoft debug symbol length limitation.
+#pragma warning(disable:4786)
+#endif
+#ifdef __BORLANDC__
+// Borland warns about loops in inline methods forcing them out-of-line.
+#pragma warn -inl
+#endif
+
+// Determine whether type is integral by yielding int else yielding char
+template <class T> 
+struct _sv_is_integral_predicate {
+  typedef char int_type_p;
+};
+template <> 
+struct _sv_is_integral_predicate<int> {
+  typedef int int_type_p;
+};
+template <> 
+struct _sv_is_integral_predicate<long> {
+  typedef int int_type_p;
+};
+
+
+
+// There are differences in the implementations of allocator in the
+// different libraries which cause crashes. Don't know which vendor 
+// is correct. Turn on SV_USE_ALLOCATOR to use the allocator in a way 
+// that works with MSVC and Borland but crashes mingw gcc.
+//#define SV_USE_ALLOCATOR
+
+template<class T, class A = std::allocator<T> >
+class split_vector {
+public:
+
+	// Standard set of typedefs
+	typedef A allocator_type;
+	typedef T value_type;
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef value_type *pointer;
+	typedef const value_type *const_pointer;
+	typedef value_type &reference;
+	typedef const value_type &const_reference;
+
+	// Define an iterator for the split vector class.
+	// As the buffer is split, this must hold some information
+	// about where the split is located and how big it is.
+	// The simplest way to do this is to hold a pointer to the 
+	// container.
+	// Since there is also a need for a current item index or pointer
+	// it will be less efficient in both space and time than 
+	// vector::interator which can be a simple pointer.
+	template<class C, class R, int D>
+	struct sv_iterator 
+		// The normal way to define an iterator is to derive it from
+		// std::iterator but that fails to compile with mingw gcc.
+#ifndef __MINGW32__
+		: public std::iterator<std::random_access_iterator_tag, T, ptrdiff_t> 
+#endif
+		{
+#ifdef __MINGW32__
+typedef std::random_access_iterator_tag  iterator_category;
+typedef T        value_type;
+typedef ptrdiff_t  difference_type;
+typedef T *pointer;
+typedef T &reference;
+#endif
+		C sv;
+		int cur;
+		sv_iterator(C sv_=0, int cur_=0) :
+			sv(sv_), cur(cur_) {
+		}
+		sv_iterator operator++() {
+			cur += D;
+			return *this;
+		}
+		sv_iterator operator++(int) {
+			sv_iterator ret = *this;
+			cur += D;
+			return ret;
+		}
+		sv_iterator operator--() {
+			cur -= D;
+			return *this;
+		}
+		sv_iterator operator--(int) {
+			sv_iterator ret = *this;
+			cur -= D;
+			return ret;
+		}
+		sv_iterator operator+(int value) const {
+			sv_iterator ret = *this;
+			ret.cur += D * value;
+			return ret;
+		}
+		sv_iterator operator-(int value) const {
+			sv_iterator ret = *this;
+			ret.cur -= D * value;
+			return ret;
+		}
+		sv_iterator operator+=(int value) {
+			cur += D * value;
+			return *this;
+		}
+		sv_iterator operator-=(int value) {
+			cur -= D * value;
+			return *this;
+		}
+		difference_type operator-(const sv_iterator &other) const {
+			return cur - other.cur;
+		}
+		bool operator==(const sv_iterator &other) const {
+			//assert(sv == other.sv);
+			return cur == other.cur;
+		}
+		bool operator !=(const sv_iterator &other) const {
+			//assert(sv == other.sv);
+			return cur != other.cur;
+		}
+		bool operator<(const sv_iterator &other) const {
+			//assert(sv == other.sv);
+			return (D > 0) ? (cur < other.cur) : (other.cur < cur);
+		}
+		bool operator<=(const sv_iterator &other) const {
+			//assert(sv == other.sv);
+			return (D > 0) ? (cur <= other.cur) : (other.cur <= cur);
+		}
+		R operator*() const {
+			return (*sv)[cur];
+		}
+	};
+
+	// The 4 standard iterator directions and constnesses
+	typedef sv_iterator<split_vector<T> *, reference, 1> iterator;
+	typedef sv_iterator<const split_vector<T> *, const_reference, 1> const_iterator;
+	typedef sv_iterator<split_vector<T> *, reference, -1> reverse_iterator;
+	typedef sv_iterator<const split_vector<T> *, const_reference, -1> const_reverse_iterator;
+
+	// Constructors
+	split_vector(const allocator_type& al=allocator_type()) : 
+		v(0), elements(0), allocated(0), part1_length(0), gap_length(0), allocer(al) {
+	}
+	split_vector(const split_vector<T, A> &other) : 
+		v(0), elements(0), allocated(0), part1_length(0), gap_length(0), allocer(other.get_allocator()) {
+		assign(other.begin(), other.end());
+	}
+	split_vector(size_type n, const allocator_type& al=allocator_type()) :
+		v(0), elements(0), allocated(0), part1_length(0), gap_length(0), allocer(al) {
+		reserve(n);
+	}
+	split_vector(size_type n, const T& a, const allocator_type& al=allocator_type()) :
+		v(0), elements(0), allocated(0), part1_length(0), gap_length(0), allocer(al) {
+		reserve(n);
+		for (size_type i=0;i<n;i++) {
+			push_back(a);
+		}
+	}
+	template <class input_iterator>
+	split_vector(input_iterator b, input_iterator e, const allocator_type& al=allocator_type()) : 
+		v(0), elements(0), allocated(0), part1_length(0), gap_length(0), allocer(al) {
+		// Tricky situation because signature matches any two repeated types so 
+		// matches (int, int) which should be the [n copies of a] form.
+		// Decide whether it is (int, int) with predicate match.
+		// Similar to technique used in STLPort.
+		typedef typename _sv_is_integral_predicate<input_iterator>::int_type_p int_choice;
+		_init_choice(b, e, int_choice(0));
+	}
+
+	~split_vector() {
+#ifdef SV_USE_ALLOCATOR
+		for (size_t k=0; k<allocated; k++) {
+			allocer.destroy(v+k);
+		}
+		allocer.deallocate(v, allocated);
+#else
+		delete []v;
+#endif
+		v = 0;
+	}
+
+	// Information retrievers
+	allocator_type get_allocator() const {
+		return allocer;
+	}
+	size_type max_size() const {
+		return 0xFFFFFFFFu / sizeof(T);
+	}
+	size_type capacity() const {
+		return allocated;
+	}
+	size_type size() const {
+		return elements;
+	}
+	bool empty() const {
+		return elements == 0;
+	}
+
+	// Iterator retrieval
+	iterator begin() {
+		return iterator(this, 0);
+	}
+	const_iterator begin() const {
+		return const_iterator(this, 0);
+	}
+	iterator end() {
+		return iterator(this, elements);
+	}
+	const_iterator end() const {
+		return const_iterator(this, elements);
+	}
+	reverse_iterator rbegin() {
+		return reverse_iterator(this, elements-1);
+	}
+	const_reverse_iterator rbegin() const {
+		return const_reverse_iterator(this, elements-1);
+	}
+	reverse_iterator rend() {
+		return reverse_iterator(this, -1);
+	}
+	const_reverse_iterator rend() const {
+		return const_reverse_iterator(this, -1);
+	}
+
+	reference front() {
+		return *begin();
+	}
+	const_reference front() const {
+		return *begin(); 
+	}
+	reference back() {
+		return *(end() - 1);
+	}
+	const_reference back() const {
+		return *(end() - 1); 
+	}
+
+	// Element access
+	reference at(size_type i) {
+		if (i >= elements) {
+			throw std::out_of_range("");
+		} else if (i < part1_length) {
+			return v[i];
+		} else {
+			return v[gap_length + i];
+		}
+	}
+	const_reference at(size_type i) const {
+		if (i >= elements) {
+			throw std::out_of_range("");
+		} else if (i < part1_length) {
+			return v[i];
+		} else {
+			return v[gap_length + i];
+		}
+	}
+	reference operator[](size_type i) {
+		if (i < part1_length) {
+			return v[i];
+		} else {
+			return v[gap_length + i];
+		}
+	}
+	const_reference operator[](size_type i) const {
+		if (i < part1_length) {
+			return v[i];
+		} else {
+			return v[gap_length + i];
+		}
+	}
+
+	// Mutators
+	void push_back(const_reference a) {
+		insert(end(), a);
+	}
+	void push_front(const_reference a) {
+		insert(begin(), a);
+	}
+	iterator insert(iterator p, const_reference a=T()) {
+		ensure_allocated(elements+1);
+		size_type i = p.cur;
+		gap_to(i);
+		v[i] = a;
+		elements++;
+		part1_length++;
+		gap_length--;
+		return iterator(this, i);
+	}
+	template <class input_iterator>
+	iterator insert(iterator p, input_iterator b, input_iterator e) {
+		size_t elems = e - b;
+		ensure_allocated(elements+elems);
+		size_type i = p.cur;
+		gap_to(i);
+		while (b != e) {
+			v[i] = *b;
+			i++;
+			b++;
+		}
+		elements += elems;
+		part1_length += elems;
+		gap_length -= elems;
+		return iterator(this, p.cur);
+	}
+	void resize(size_type n, const_reference a=T()) {
+		while (size() < n) {
+			push_back(a);
+		}
+	}
+	iterator erase(iterator p) {
+		return erase(p, p+1);
+	}
+	iterator erase(iterator b, iterator e) {
+		size_type length = e.cur - b.cur;
+		gap_to(b.cur);
+		elements -= length;
+		gap_length += length;
+		return b;
+	}
+	template <class input_iterator>
+	void assign(input_iterator b, input_iterator e) {
+		clear();
+		reserve(e - b);
+		insert(begin(), b, e);
+	}
+	void clear() {
+		erase(begin(), end()); 
+	}
+	void reserve(size_type n) {
+		if (n > allocated) {
+			gap_to(elements);	// Move to front
+			gap_length += n - allocated;
+#ifdef SV_USE_ALLOCATOR
+			T *new_v = allocer.allocate(n, 0);
+			for (size_type i=0; i<n; i++) {
+				allocer.construct(new_v+i, T());
+			}
+			for (size_type j=0;j<elements;j++) {
+				new_v[j] = v[j];
+			}
+			for (size_type k=0; k<allocated; k++) {
+				allocer.destroy(v+k);
+			}
+			allocer.deallocate(v, allocated);
+#else
+			T *new_v = new T[n];
+			for (size_type j=0;j<elements;j++) {
+				new_v[j] = v[j];
+			}
+			delete []v;
+#endif
+			v = new_v;
+			allocated = n;
+		}
+	}
+	void swap(split_vector &other) {
+		std::swap(v, other.v);
+		std::swap(elements, other.elements);
+		std::swap(allocated, other.allocated);
+		std::swap(part1_length, other.part1_length);
+		std::swap(gap_length, other.gap_length);
+		std::swap(allocer, other.allocer);
+	}
+
+	// Make the data contiguous and return a pointer to the 
+	// data so that it can be used with legacy APIs.
+	// Pointer may be invalidated by calling any methods.
+	pointer data_pointer() {
+		gap_to(elements);
+		return v;
+	}
+
+	// Only public for testing
+	void move_gap(size_t position) {
+		gap_to(position);
+	}
+
+private:
+	T *v;
+	size_type elements;
+	size_type allocated;
+	size_type part1_length;
+	size_type gap_length;
+	A allocer;
+	void ensure_allocated(size_t n) {
+		while (n > allocated) {
+			if (allocated > 0) {
+				reserve(allocated*2);
+			} else {
+				reserve(1);
+			}
+		}
+	}
+	void gap_to(size_t position) {
+		if (position != part1_length) {
+			if (position < part1_length) {
+				for (int i=static_cast<int>(part1_length - position) - 1; i >= 0; i--) {
+					v[position + gap_length + i] = v[position + i];
+				}
+			} else {	// position > part1_length
+				for (size_type i=0; i < position - part1_length; i++) {
+					v[part1_length + i] = v[part1_length + gap_length + i];
+				}
+			}
+			part1_length = position;
+		}
+	}
+
+	// Initialisation helpers.
+	// Choose construction between (int, int) and (iterator, iterator).
+	template <class int_like>
+	void _init_choice(int_like n, int_like a, int) {
+		reserve(n);
+		for (size_type i=0;i<static_cast<size_type>(n);i++) {
+			push_back(a);
+		}
+	}
+	template <class input_iterator>
+	void _init_choice(input_iterator b, input_iterator e, char) {
+		assign(b,e);
+	}
+};

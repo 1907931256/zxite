@@ -1,0 +1,100 @@
+0=ASP.HTML.Default
+1=ASP.HTML.Comment
+2=ASP.HTML.Tag
+3=ASP.HTML.TagUnknown
+4=ASP.HTML.Attribute
+5=ASP.HTML.AttributeUnknown
+6=ASP.HTML.Number
+7=ASP.HTML.DoubleString
+8=ASP.HTML.SingleString
+9=ASP.HTML.Other
+10=ASP.HTML.Entity
+11=ASP.HTML.TagEnd
+12=ASP.HTML.XMLStart
+13=ASP.HTML.XMLEnd
+14=ASP.HTML.Script
+15=ASP.HTML.CDATA
+16=ASP.HTML.Value
+17=ASP.HTML.SGML
+18=ASP.HTML.SGMLCommand
+19=ASP.HTML.SGMLDoubleString
+20=ASP.HTML.SGMLSimpleString
+21=ASP.HTML.CPP.Default
+22=ASP.HTML.CPP.Comment
+23=ASP.HTML.CPP.CommentLine
+24=ASP.HTML.CPP.CommentDoc
+25=ASP.HTML.CPP.Number
+26=ASP.HTML.CPP.Quoted
+27=ASP.HTML.CPP.Character
+28=ASP.HTML.CPP.UUID
+29=ASP.HTML.CPP.Preprocessor
+30=ASP.HTML.CPP.Operator
+31=ASP.HTML.CPP.StringEOL
+32=ASP.HTML.CPP.Verbatim
+33=ASP.HTML.CPP.RegEx
+34=ASP.HTML.CPP.CommentLineDoc
+35=ASP.HTML.CPP.CommentDocKeyWord
+36=ASP.HTML.CPP.CommentDocKeyWordError
+37=ASP.HTML.CPP.Identifier
+38=ASP.HTML.CPP.KeyWord
+39=ASP.HTML.VB.Default
+40=ASP.HTML.VB.Comment
+41=ASP.HTML.VB.Number
+42=ASP.HTML.VB.Quoted
+43=ASP.HTML.VB.Preprocessor
+44=ASP.HTML.VB.Operator
+45=ASP.HTML.VB.Date
+46=ASP.HTML.VB.Identifier
+47=ASP.HTML.VB.KeyWord
+48=ASP.ASP
+49=ASP.ASPAt
+50=ASP.CPP.Default
+51=ASP.CPP.Comment
+52=ASP.CPP.CommentLine
+53=ASP.CPP.CommentDoc
+54=ASP.CPP.Number
+55=ASP.CPP.Quoted
+56=ASP.CPP.Character
+57=ASP.CPP.UUID
+58=ASP.CPP.Preprocessor
+59=ASP.CPP.Operator
+60=ASP.CPP.StringEOL
+61=ASP.CPP.Verbatim
+62=ASP.CPP.RegEx
+63=ASP.CPP.CommentLineDoc
+64=ASP.CPP.CommentDocKeyWord
+65=ASP.CPP.CommentDocKeyWordError
+66=ASP.CPP.Identifier
+67=ASP.CPP.KeyWord
+68=ASP.VB.Default
+69=ASP.VB.Comment
+70=ASP.VB.Number
+71=ASP.VB.Quoted
+72=ASP.VB.Preprocessor
+73=ASP.VB.Operator
+74=ASP.VB.Date
+75=ASP.VB.Identifier
+76=ASP.VB.KeyWord
+{48}<%@{49}language=javas{48}%>{0}
+{48}<%{50} 
+{58}#include {50}
+{66}function{50} {66}x{59}(){50} {59}{{50}
+{59}}{50}
+{48}%>{0}
+{48}<%@{49}language=vbscript{48}%>{0}
+{48}<%{68} 
+{76}sub{68} {75}x{68} {69}'comment {68}
+{48}%>{0}
+{2}<head>{0}
+    {2}<script{9} {5}language{9}={7}"javascript"{2}>{21}
+	{38}if{21} {37}window{30}.{37}location{21} {30}=={21} {26}"top"{21} {30}{{21}
+		{38}return{21} {37}loc{30}.{37}indexOf{30}({27}'http:'{30}){21} {30}!={21} {30}-{25}1{30};{21}
+   	{30}}{21}
+   {2}</script>{0}
+    {2}<script{9} {5}language{9}={7}"vbscript"{2}>{39}
+	{47}if{39} {46}x{39} {47}then{39}
+	    {40}' Do it{39}
+	    {46}x{39} {44}={39} {46}x{39} {44}+{39} {41}1{39}
+	{47}end{39} {47}if{39}
+   {2}</script>{0}
+{2}</head>{0}

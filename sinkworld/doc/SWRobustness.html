@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="Date.Modified" content="20010515" />
+    <title>SinkWorld - Robustness</title>
+    <link rel="stylesheet" type="text/css" href="SW.css">
+</head>
+<body>
+<img src="swtxt1.jpg" height="150" width="780" alt="SinkWorld banner image">
+<h3>Robustness</h3>
+<p>
+Scintilla has not been tested as thoroughly as it should in the past leading to occasional
+regressions. One noticeable case is the implementation of undo batching
+which has changed several times, not all of which have been improvements.
+</p>
+<p>
+It can be hard to consistently test a component in a real world setting as 
+asynchronous actions can lead to non-repeatable results. 
+By testing classes in an isolated environment, a good set of unit tests can be built
+up to safeguard against regressions and ensure correct and reasonable behaviour
+under both common and uncommon sets of actions.
+</p>
+<p>
+Unit testing frameworks have become more popular, polished and useful over 
+the past couple of years due to the growing popularity of 
+<a href="http://www.extremeprogramming.org/">Extreme Programming</a>.
+I particularly like <a href="http://www.junit.org/">JUnit</a>, a 
+unit testing framework for Java and 
+<a href="http://nunit.sourceforge.net/">NUnit</a>, a unit testing framework 
+for any of the languages available for .NET. Java and .NET provide accessible
+metadata and dynamic loading which makes it easier to write good testing 
+frameworks. There are unit testing frameworks available for C++, but they are more
+constrained due to the absence of these higher level features.
+</p>
+<p>
+Using unit testing frameworks should be particularly useful to ensure code 
+translated from one language to another, as is envisaged on the portability page,
+behaves identically to the original code.
+</p>
+<p>
+Another potential outcome of SinkWorld is the use of assertions, preconditions and 
+postconditions to ensure correct behaviour and to discover problems earlier.
+</p>
+<h3>Type safety</h3>
+<p>
+The primary interface to Scintilla is based upon the non-typesafe interface used for 
+communicating with windows on Win32. The single entry point takes 3 integer arguments
+and returns an integer. Pointers are coerced into integers to be passed to or 
+returned from this interface. This interface does no type checking and crashes can occur 
+when the data is transferred over the interface incorrectly. 
+Managed execution environments do not
+allow breaking type safety in this way and so crashes are less likely to occur.
+There are, however, also benefits to this single entry point such as making it easy to 
+log all activity or record actions to produce macros.
+</p>
+<p>
+SinkWorld will explore the possibility of exposing a typesafe interface as well as
+continuing to provide the current less safe interface to current clients.
+</p>
+</body>
+</html>

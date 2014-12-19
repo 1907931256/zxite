@@ -1,0 +1,17 @@
+0=PHP.Default
+1=PHP.Comment
+2=PHP.CommentLine
+3=PHP.HString
+4=PHP.HStringVariable
+5=PHP.SimpleString
+6=PHP.Number
+7=PHP.Operator
+8=PHP.Delimiters
+9=PHP.Identifier
+10=PHP.KeyWord
+{7}<{10}head{7}>{0} {2}<!-- About to script -->{0}
+{8}<?php{0}
+{10}echo{0} {3}"<!-- -->\n"{7};{0}
+{1}/* ?> */{0}
+{8}?>
+<strong>for</strong><b>if</b>

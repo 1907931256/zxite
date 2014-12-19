@@ -1,0 +1,2 @@
+# The construction file for SinkWorld C++ libraries
+SConscript(['base/SConscript', 'lexers/SConscript'])

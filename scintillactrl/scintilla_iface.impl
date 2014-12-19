@@ -1,0 +1,271 @@
+# C++ implementation for selected scintilla COM control functions 
+# that cannot be generated automatically
+
+fun GetStyledText
+{
+	long result = 0;
+	TEXTRANGE tr;
+	tr.chrg.cpMin = trMin;
+	tr.chrg.cpMax = trMax;
+	if(trMin == 0 && trMax == -1)
+		tr.lpstrText = new char[(WM_GetTextLength() + 1) * 2];		
+	else
+		tr.lpstrText = new char[(trMax - trMin + 1) * 2];
+	try
+	{
+		result = SendMessage(SCI_GETSTYLEDTEXT,(WPARAM)0,(LPARAM)&tr);
+		*trStr = SysAllocStringByteLen(tr.lpstrText,result);
+	}
+	catch(...)
+	{
+	}
+	delete[] tr.lpstrText;
+	return result;
+}
+
+fun GetCurLine
+{
+	long result = 0;
+	char* text = new char[length + 1];
+	try
+	{
+		result = SendMessage(SCI_GETCURLINE,(WPARAM)length,(LPARAM)text);
+		*textStr = SysAllocStringByteLen(text,length);
+	}
+	catch(...)
+	{
+	}
+	delete[] text;
+	return result;
+}
+
+fun AssignCmdKey
+{
+	long km = ((long)kmMod << 16) | kmKey; // Key in the low word, modifiers in the high
+	SendMessage(SCI_ASSIGNCMDKEY,(WPARAM)km,(LPARAM)msg);
+}
+
+fun ClearCmdKey
+{
+	long km = ((long)kmMod << 16) | kmKey; // Key in the low word, modifiers in the high
+	SendMessage(SCI_CLEARCMDKEY,(WPARAM)km,(LPARAM)0);
+}
+
+fun EM_CharFromPos
+{
+	POINT pt;
+	pt.x = ptX;
+	pt.y = ptY;
+	return SendMessage(EM_CHARFROMPOS,(WPARAM)0,(LPARAM)&pt);
+}
+
+fun EM_ExGetSel
+{
+	CHARRANGE cr;
+	SendMessage(EM_EXGETSEL,(WPARAM)0,(LPARAM)&cr);
+	*crMin = cr.cpMin;
+	*crMax = cr.cpMax;
+}
+
+fun EM_ExSetSel
+{
+	CHARRANGE cr;
+	cr.cpMin = crMin;
+	cr.cpMax = crMax;
+	SendMessage(EM_EXSETSEL,(WPARAM)0,(LPARAM)&cr);
+}
+
+fun EM_FindText
+{
+	FINDTEXT ft;
+	ft.chrg.cpMin = ftMin;
+	ft.chrg.cpMax = ftMax; 
+	ft.lpstrText = const_cast<char*>(ftStr);
+	return SendMessage(EM_FINDTEXT,(WPARAM)flags,(LPARAM)&ft);
+}
+
+fun FindText
+{
+	FINDTEXT ft;
+	ft.chrg.cpMin = ftMin;
+	ft.chrg.cpMax = ftMax; 
+	ft.lpstrText = const_cast<char*>(ftStr);
+	return SendMessage(EM_FINDTEXT,(WPARAM)flags,(LPARAM)&ft);
+}
+
+fun EM_FindTextEx
+{
+	FINDTEXTEX ft;
+	ft.chrg.cpMin = ftMin;
+	ft.chrg.cpMax = ftMax; 
+	ft.lpstrText = const_cast<char*>(ftStr);
+	long result = SendMessage(EM_FINDTEXTEX,(WPARAM)flags,(LPARAM)&ft);
+	*ftTxtMin = ft.chrgText.cpMin;
+	*ftTxtMax = ft.chrgText.cpMax; 
+	return result;
+}
+
+fun EM_GetLine
+{
+	long result = 0;
+	unsigned short len = textLen;
+	char* text = new char[textLen + 3];
+	memcpy(text,&len,sizeof(short));
+	try
+	{
+		result = SendMessage(EM_GETLINE,(WPARAM)line,(LPARAM)text);
+		*textStr = SysAllocStringByteLen(text,result);
+	}
+	catch(...)
+	{
+	}
+	delete[] text;
+	return result;
+}
+
+fun GetLine
+{
+	long result = 0;
+	char* text = new char[LineLength(line) + 1];
+	try
+	{
+		result = SendMessage(SCI_GETLINE,(WPARAM)line,(LPARAM)text);
+		*textStr = SysAllocStringByteLen(text,result);
+	}
+	catch(...)
+	{
+	}
+	delete[] text;
+	return result;
+}
+
+fun EM_GetRect
+{
+	RECT r;
+	SendMessage(EM_GETRECT,(WPARAM)0,(LPARAM)&r);
+	*rLeft = r.left;
+	*rTop = r.top;
+	*rRight = r.right;
+	*rBottom = r.bottom;
+}
+
+fun EM_GetSelText
+{
+	long min, max;
+	long result = 0;
+	EM_ExGetSel(&min,&max);
+	char* text = new char[max - min + 1];
+	try
+	{
+		result = SendMessage(EM_GETSELTEXT,(WPARAM)0,(LPARAM)text);
+		*textStr = SysAllocStringByteLen(text,result);
+	}
+	catch(...)
+	{
+	}
+	delete[] text;
+	return result;
+}
+
+fun GetSelText
+{
+	long min = GetSelectionStart();
+	long max = GetSelectionEnd();
+	long result = 0;
+	char* text = new char[max - min + 1];
+	try
+	{
+		result = SendMessage(SCI_GETSELTEXT,(WPARAM)0,(LPARAM)text);
+		*textStr = SysAllocStringByteLen(text,result);
+	}
+	catch(...)
+	{
+	}
+	delete[] text;
+	return result;
+}
+
+fun EM_GetTextRange
+{
+	long result = 0;
+	TEXTRANGE tr;
+	tr.chrg.cpMin = trMin;
+	tr.chrg.cpMax = trMax;
+	if(trMin == 0 && trMax == -1)
+		tr.lpstrText = new char[WM_GetTextLength() + 1];		
+	else
+		tr.lpstrText = new char[trMax - trMin + 1];
+	try
+	{
+		result = SendMessage(EM_GETTEXTRANGE,(WPARAM)0,(LPARAM)&tr);
+		*trStr = SysAllocStringByteLen(tr.lpstrText,result);
+	}
+	catch(...)
+	{
+	}
+	delete[] tr.lpstrText;
+	return result;
+}
+
+fun GetTextRange
+{
+	long result = 0;
+	TEXTRANGE tr;
+	tr.chrg.cpMin = trMin;
+	tr.chrg.cpMax = trMax;
+	if(trMin == 0 && trMax == -1)
+		tr.lpstrText = new char[GetTextLength() + 1];		
+	else
+		tr.lpstrText = new char[trMax - trMin + 1];
+	try
+	{
+		result = SendMessage(SCI_GETTEXTRANGE,(WPARAM)0,(LPARAM)&tr);
+		*trStr = SysAllocStringByteLen(tr.lpstrText,result);
+	}
+	catch(...)
+	{
+	}
+	delete[] tr.lpstrText;
+	return result;
+}
+
+fun EM_PosFromChar
+{
+	POINT pt;
+	SendMessage(EM_POSFROMCHAR,(WPARAM)&pt,(LPARAM)pos);
+	*ptX = pt.x;
+	*ptY = pt.y;
+}
+
+fun WM_GetText
+{
+	long result = 0;
+	char* text = new char[length + 1];
+	try
+	{
+		result = SendMessage(WM_GETTEXT,(WPARAM)length,(LPARAM)text);
+		*textStr = SysAllocStringByteLen(text,result);
+	}
+	catch(...)
+	{
+	}
+	delete[] text;
+	return result;
+}
+
+fun GetText
+{
+	long result = 0;
+	char* text = new char[length + 1];
+	try
+	{
+		result = SendMessage(SCI_GETTEXT,(WPARAM)length,(LPARAM)text);
+		*textStr = SysAllocStringByteLen(text,result);
+	}
+	catch(...)
+	{
+	}
+	delete[] text;
+	return result;
+}
+

@@ -1,0 +1,7 @@
+Much of the core requirements of Scintilla, 
+including text and style buffers, line 
+positions, undo, and lexing are working. There 
+is one example lexer for C++ although it 
+doesn't handle keywords yet. The style 
+buffer may contain 0, 1, 2, or 4 bytes for 
+each byte of text.

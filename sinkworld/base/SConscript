@@ -1,0 +1,10 @@
+# The construction file for SinkWorld C++ Base
+import os
+import glob
+src = "."
+sources = [os.path.basename(x) for x in glob.glob(src + os.sep + "*.cxx")]
+env = Environment(CXXFLAGS = ["-nologo", "-EHsc", "-MD", "-Zi"])
+# Needed because installing VC 2005 confuses scons discovery of VC
+for v in ['PATH', 'INCLUDE']:
+	env['ENV'][v] = os.environ[v]
+env.StaticLibrary("base", sources)

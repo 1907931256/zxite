@@ -1,0 +1,155 @@
+# html.mode: modes for HTML, scripts inside HTML files, and ASP
+# over html
+
+lexer=HTML
+name=HTMLfilter=Web (.html;.htm;.asp;.shtml;.css;.xml)|*.html;*.htm;*.asp;*.shtml;*.css;*.xml
+keywords.1=a abbr acronym address applet area b base basefont \
+	bdo big blockquote body br button caption center cite \
+	code col colgroup dd del dfn dir div dl dt em fieldset font \
+	form frame frameset h1 h2 h3 h4 h5 h6 head hr html i \
+	iframe img input ins isindex kbd label legend li link map \
+	menu meta noframes noscript object ol optgroup option p \
+	param pre q s samp script select small span strike strong \
+	style sub sup table tbody td textarea tfoot th thead title \
+	tr tt u ul var xml xmlns
+keywords.2=\
+	abbr accept-charset accept accesskey action align alink \
+	alt archive axis background bgcolor border \
+	cellpadding cellspacing char charoff charset checked cite \
+	class classid clear codebase codetype color cols colspan \
+	compact content coords \
+	data datafld dataformatas datapagesize datasrc datetime \
+	declare defer dir disabled enctype event \
+	face for frame frameborder \
+	headers height href hreflang hspace http-equiv \
+	id ismap label lang language leftmargin link longdesc \
+	marginwidth marginheight maxlength media method multiple \
+	name nohref noresize noshade nowrap \
+	object onblur onchange onclick ondblclick onfocus \
+	onkeydown onkeypress onkeyup onload onmousedown \
+	onmousemove onmouseover onmouseout onmouseup \
+	onreset onselect onsubmit onunload \
+	profile prompt readonly rel rev rows rowspan rules \
+	scheme scope selected shape size span src standby start style \
+	summary tabindex target text title topmargin type usemap \
+	valign value valuetype version vlink vspace width \
+	text password checkbox radio submit reset \
+	file hidden image
+	bdo big blockquote body br button caption center cite \
+	code col colgroup dd del dfn dir div dl dt em fieldset font \
+	form frame frameset h1 h2 h3 h4 h5 h6 head hr html i \
+	iframe img input ins isindex kbd label legend li link map \
+	menu meta noframes noscript object ol optgroup option p \
+	param pre q s samp script select small span strike strong \
+	style sub sup table tbody td textarea tfoot th thead title \
+	tr tt u ul var xml xmlns
+style:
+	Default:font=Times New Roman
+	Tag:fore=#000080,font=Trebuchet MS,bold=0
+	TagUnknown:fore=#FF0000,font=Trebuchet MS,bold=0
+	Attribute:fore=#008080,font=Trebuchet MS,italics=1
+	AttributeUnknown:fore=#FF0000,font=Trebuchet MS,italics=1
+	Number:fore=#007F7F
+	DoubleString:fore=#7F007F
+	SingleString:fore=#7F007F
+	Other:fore=#800080
+	Comment:fore=#008000,font=Comic Sans MS,italics=1
+	Entity:fore=#800080,font=Times New Roman,size=11
+	TagEnd:fore=#000080
+	XMLStart:fore=#0000FF
+	Script:fore=#000080,back=#fff0ff
+	CDATA:back=#fff0ff,fore=#0000c7
+	Value:back=#fff0f0,fore=#FF0000
+	SGML:back=#fff0ff,fore=#FFFF00
+	SGMLCommand:back=#fff0ff,fore=#FF00FF
+	SGMLDoubleString:back=#fff0ff,fore=#0000FF
+	SGMLSimpleString:back=#fff0ff,fore=#0000FF
+
+hypertextscripted:
+	lexer=HTML
+	name=Scripted HTML
+	extensions=html
+	super=mode.html
+	name=Scripted HTML
+	submodes=mode.html.vbs_client mode.html.js_client
+
+asp:
+	extensions=aspx
+	lexer=ASP
+	name=ASP
+	submodes=mode.html
+	style:
+		ASP:back=#FFFF00
+		ASPAt:back=#FFDF00
+	selection.style:back=#FFE7E7,bold=1
+
+aspscript:
+	super=mode.html.asp
+	name=Scripted ASP
+	extensions=asp
+	submodes=html|mode.html.hypertextscripted mode.html.js_server mode.html.vbs_server
+	#layers=mode.base.spell mode.base.url mode.base.bracecount
+
+php:
+	extensions=php
+	name=PHP
+	submodes=html|mode.html.hypertextscripted
+	layers=mode.base.url mode.base.bracecount
+
+# Client side JavaScript mode.html.js_client
+js_client:
+	super=mode.cxx.javascript
+	style:
+		Default:back=#f0f0ff,eolfilled=1
+		Comment:back=#f0f0ff,eolfilled=1
+		CommentLine:back=#f0f0ff,eolfilled=1
+		CommentDoc:back=#f0f0ff,eolfilled=1
+		Quoted:back=#f0f0ff,eolfilled=1
+		Character:back=#f0f0ff,eolfilled=1
+		Number:back=#f0f0ff,eolfilled=1
+		Preprocessor:back=#f0f0ff,eolfilled=1
+		Operator:back=#f0f0ff,eolfilled=1
+		Identifier:back=#f0f0ff,eolfilled=1
+		KeyWord:back=#f0f0ff,eolfilled=1
+
+# Server side JavaScript
+# mode.html.js_server
+js_server:
+	super=mode.cxx.javascript
+	style:
+		Default:back=#d0d0ff,eolfilled=1
+		Comment:back=#d0d0ff,eolfilled=1
+		CommentLine:back=#d0d0ff,eolfilled=1
+		CommentDoc:back=#d0d0ff,eolfilled=1
+		Quoted:back=#d0d0ff,eolfilled=1
+		Character:back=#d0d0ff,eolfilled=1
+		Number:back=#d0d0ff,eolfilled=1
+		Preprocessor:back=#d0d0ff,eolfilled=1
+		Operator:back=#d0d0ff,eolfilled=1
+		Identifier:back=#d0d0ff,eolfilled=1
+		KeyWord:back=#d0d0ff,eolfilled=1
+
+# Client side VBScript
+# mode.html.vbs_client
+vbs_client:
+	super=mode.base.basic
+	style:
+		Default:back=#f0fff0,eolfilled=1
+		Comment:back=#f0fff0,eolfilled=1
+		Number:back=#f0fff0,eolfilled=1
+		Operator:back=#f0fff0,eolfilled=1
+		Identifier:back=#f0fff0,eolfilled=1
+		KeyWord:back=#f0fff0,eolfilled=1
+
+# Server side VBScript
+# mode.html.vbs_server
+vbs_server:
+	super=mode.base.basic
+	style:
+		Default:back=#d0ffd0,eolfilled=1
+		Comment:back=#d0ffd0,eolfilled=1
+		Number:back=#d0ffd0,eolfilled=1
+		Operator:back=#d0ffd0,eolfilled=1
+		Identifier:back=#d0ffd0,eolfilled=1
+		KeyWord:back=#d0ffd0,eolfilled=1
+		Preprocessor:back=#d0ffd0,eolfilled=1

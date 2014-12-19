@@ -1,0 +1,210 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_CXX                 ICON                    "cxx.ico"
+IDI_SMALL               ICON                    "small.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU1 MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",                IDM_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            IDM_FILE_OPEN
+        MENUITEM "&Save\tCtrl+S",               IDM_FILE_SAVE
+        MENUITEM "Save &As...\tCtrl+Shift+S",   IDM_FILE_SAVEAS
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       IDM_FILE_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "&Undo\tCtrl+Z",               IDM_EDIT_UNDO
+        MENUITEM "&Redo\tCtrl+Y",               IDM_EDIT_REDO
+        MENUITEM SEPARATOR
+        MENUITEM "Cu&t\tCtrl+X",                IDM_EDIT_CUT
+        MENUITEM "&Copy\tCtrl+C",               IDM_EDIT_COPY
+        MENUITEM "&Paste\tCtrl+V",              IDM_EDIT_PASTE
+        MENUITEM "&Delete\tDel",                IDM_EDIT_DELETE
+        MENUITEM "Select &All\tCtrl+A",         IDM_EDIT_SELECTALL
+        MENUITEM SEPARATOR
+        MENUITEM "&Fold\tCtrl+L",               ID_EDIT_FOLD
+        MENUITEM "F&old All",                   ID_EDIT_FOLDALL
+        MENUITEM "S&how All",                   ID_SHOW_ALL
+    END
+    POPUP "&Search"
+    BEGIN
+        MENUITEM "&Find...\tCtrl+F",            IDM_SEARCH_FIND
+        MENUITEM "Find &Next\tF3",              IDM_SEARCH_FINDNEXT
+        MENUITEM "&Replace...\tCtrl+H",         IDM_SEARCH_REPLACE
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "&Wrap",                       IDM_EDIT_WRAP
+        MENUITEM "&Switch Pane\tF6",            ID_OPTIONS_SWITCH_PANE
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR1 ACCELERATORS 
+BEGIN
+    "L",            ID_EDIT_FOLD,           VIRTKEY, CONTROL, NOINVERT
+    "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
+    "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
+    "S",            IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, CONTROL, 
+                                                    NOINVERT
+    "F",            IDM_SEARCH_FIND,        VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          IDM_SEARCH_FINDNEXT,    VIRTKEY, NOINVERT
+    "H",            IDM_SEARCH_REPLACE,     VIRTKEY, CONTROL, NOINVERT
+    VK_LBUTTON,     IDYES,                  VIRTKEY, SHIFT, CONTROL, ALT, 
+                                                    NOINVERT
+    VK_F6,          ID_OPTIONS_SWITCH_PANE, VIRTKEY, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SEARCH DIALOGEX 0, 0, 278, 31
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_PALETTEWINDOW
+CAPTION "Find"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Find",IDOK,166,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,221,7,50,14
+    RTEXT           "Find &What:",IDC_STATIC,7,9,36,8
+    EDITTEXT        IDC_FIND_WHAT,47,7,112,14,ES_AUTOHSCROLL
+END
+
+IDD_REPLACE DIALOGEX 0, 0, 346, 47
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+EXSTYLE WS_EX_PALETTEWINDOW
+CAPTION "Replace"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    RTEXT           "&Find what:",IDC_STATIC,7,8,47,8
+    EDITTEXT        IDC_FIND_WHAT,60,7,168,14,ES_AUTOHSCROLL
+    RTEXT           "Re&place with:",IDC_STATIC,7,27,47,8
+    EDITTEXT        IDREPLACEWITH,60,25,168,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "F&ind",ID_FIND,234,7,50,14
+    PUSHBUTTON      "&Replace",IDREPLACE,234,25,50,14
+    PUSHBUTTON      "Replace &All",IDC_REPLACE_ALL,289,7,50,14
+    PUSHBUTTON      "I&n Selection",IDC_REPLACE_IN_SELECTION,289,25,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_SEARCH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 271
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 21
+    END
+
+    IDD_REPLACE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 339
+        VERTGUIDE, 54
+        VERTGUIDE, 60
+        VERTGUIDE, 228
+        VERTGUIDE, 234
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 40
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

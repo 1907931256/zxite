@@ -1,0 +1,43 @@
+0=BraceCount.Default
+1=BraceCount.L1
+2=BraceCount.L2
+3=BraceCount.L3
+4=BraceCount.L4
+5=BraceCount.L5
+6=BraceCount.L6
+7=BraceCount.L7
+8=BraceCount.L8
+9=BraceCount.L9
+10=BraceCount.L10
+11=BraceCount.L11
+12=BraceCount.L12
+13=BraceCount.L13
+14=BraceCount.L14
+15=BraceCount.L15
+16=BraceCount.L16
+17=BraceCount.L17
+18=BraceCount.L18
+19=BraceCount.Negative
+{0}MarkerHandleSet::MarkerHandleSet{1}(){0} {1}{
+	root = 0;
+}{0}
+
+MarkerHandleSet::~MarkerHandleSet{1}(){0} {1}{
+	MarkerHandleNumber *mhn = root;
+	while {2}(mhn){1} {2}{
+		MarkerHandleNumber *mhnToFree = mhn;
+		mhn = mhn->next;
+		delete mhnToFree;
+	}{1}
+	root = 0;
+}{0}
+
+int MarkerHandleSet::Length{1}(){0} {1}{
+	int c = 0;
+	MarkerHandleNumber *mhn = root;
+	while {2}(mhn){1} {2}{
+		c++;
+		mhn = mhn->next;
+	}{1}
+	return c;
+}{0}

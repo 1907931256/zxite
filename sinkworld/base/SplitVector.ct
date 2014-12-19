@@ -1,0 +1,266 @@
+// SinkWorld SplitVector template.
+// Copyright 2001 Neil Hodgson
+// File written in C~ subset of C++ for automatic translation to Java and C#.
+
+#include <string.h>
+#include <assert.h>
+#include <string>
+
+#include "base.h"
+
+/// Move the gap to a particular position so that insertion and
+/// deletion at that point will not require much copying and
+/// hence be fast.
+/// TODO: for vectors of pointers, it may be worth while filling the gap with nulls.
+void SplitVector_<N>::GapTo(int position) {
+	if (position != part1Length) {
+		if (position < part1Length) {
+			SW_ARRAYCOPY(body, position,
+				body, position + gapLength,
+				part1Length - position);
+		} else {	// position > part1Length
+			SW_ARRAYCOPY(body, part1Length + gapLength,
+				body, part1Length,
+				position - part1Length);
+		}
+		part1Length = position;
+	}
+}
+
+/// Reallocate the storage for the buffer to be newSize and
+/// copy exisiting contents to the new buffer.
+/// Must not be used to decrease the size of the buffer.
+void SplitVector_<N>::ReAllocate(int newSize) {
+	// Move the gap to the end
+	GapTo(lengthBody);
+	<T> *newBody = new <T>[newSize];
+	if ((size != 0) && (body != NULL)) {
+		SW_ARRAYCOPY(body, 0, newBody, 0, lengthBody);
+		delete []body;
+	}
+	body = newBody;
+	gapLength += newSize - size;
+	size = newSize;
+}
+
+/// Check that there is room in the buffer for an insertion,
+/// reallocating if more space needed.
+void SplitVector_<N>::RoomFor(int insertionLength) {
+	if (gapLength <= insertionLength) {
+		if (growSize * 6 < size)
+			growSize *= 2;
+		ReAllocate(size + insertionLength + growSize);
+	}
+}
+
+/// Construct a split buffer.
+SplitVector_<N>::SplitVector_<N>() {
+	body = NULL;
+	growSize = 8;
+	size = 0;
+	lengthBody = 0;
+	part1Length = 0;
+	gapLength = 0;
+}
+
+SplitVector_<N>::~SplitVector_<N>() {
+	delete []body;
+	body = NULL;
+}
+
+void SplitVector_<N>::Create(int initialLength_, int growSize_) {
+	growSize = growSize_;
+	ReAllocate(initialLength_);
+}
+
+int SplitVector_<N>::GetGrowSize() {
+	return growSize;
+}
+
+void SplitVector_<N>::SetGrowSize(int growSize_) {
+	growSize = growSize_;
+}
+
+int SplitVector_<N>::ValueAt(int position) {
+	int ch = CharAt(position);
+	// For bytes want to return as if unsigned so can be used as an index.
+	if (<N> == 1)
+		ch = ch & 0xff;
+	return ch;
+}
+
+void SplitVector_<N>::SetValueAt(int position, int v) {
+	if (position < part1Length) {
+		if (position < 0) {
+			throw new BadPositionException();
+		} else {
+			body[position] = (<T>)v;
+		}
+	} else {
+		if (position >= lengthBody) {
+			throw new BadPositionException();
+		} else {
+			body[gapLength + position] = (<T>)v;
+		}
+	}
+}
+
+/// Find the location after position where there is the next change in value.
+int SplitVector_<N>::FindNextChange(int position, int end) {
+	if (position < end - 1) {
+		<T> previousValue = 0;
+		if (position >= 0)
+			previousValue = CharAt(position);
+		position++;
+		while (position < end) {
+			<T> nextValue = CharAt(position);
+			if (previousValue != nextValue) {
+				return position;
+			}
+			previousValue = nextValue;
+			position++;
+		}
+		return end;
+	} else if (position == end - 1) {
+		return end;
+	} else {
+		return end + 1;
+	}
+}
+
+/// Retrieve a range of text from the buffer.
+/// Retrieving positions outside the range of the buffer throws a
+/// BadPositionException.
+void SplitVector_<N>::RetrieveString(int position, <T> s[], int retrieveLength) {
+	if ((position < 0) || ((position+retrieveLength) > lengthBody)) {
+		throw new BadPositionException();
+	}
+	int i = 0;
+	while ((i < retrieveLength) && (position < part1Length)) {
+		s[i++] = body[position++];
+	}
+	while (i < retrieveLength) {
+		s[i++] = body[gapLength + position++];
+	}
+}
+
+/// Insert a single value into the buffer.
+/// Inserting at positions outside the current range throws a
+/// BadPositionException.
+void SplitVector_<N>::Insert(int position, <T> v) {
+	if ((position < 0) || (position > lengthBody)) {
+		throw new BadPositionException();
+	}
+	RoomFor(1);
+	GapTo(position);
+	body[part1Length] = v;
+	lengthBody++;
+	part1Length++;
+	gapLength--;
+}
+
+/// Insert a number of zero characters into the buffer.
+/// Inserting at positions outside the current range fails.
+void SplitVector_<N>::InsertSpace(int position, int insertLength) {
+	if (insertLength > 0) {
+		RoomFor(insertLength);
+		GapTo(position);
+		for (int i = 0; i < insertLength; i++)
+			body[part1Length + i] = 0;
+		lengthBody += insertLength;
+		part1Length += insertLength;
+		gapLength -= insertLength;
+	}
+}
+
+/// Insert text into the buffer.
+/// Inserting at positions outside the current range throws a
+/// BadPositionException.
+void SplitVector_<N>::InsertString(int position, <T> s[], int insertLength) {
+	InsertFromArray(position, s, 0, insertLength);
+}
+
+/// Insert text into the buffer from an array.
+void SplitVector_<N>::InsertFromArray(int positionToInsert, <T> s[], int positionFrom, int insertLength) {
+	if (insertLength > 0) {
+		if ((positionToInsert < 0) || (positionToInsert > lengthBody)) {
+			throw new BadPositionException();
+		}
+		RoomFor(insertLength);
+		GapTo(positionToInsert);
+		SW_ARRAYCOPY(s, positionFrom, body, part1Length, insertLength);
+		lengthBody += insertLength;
+		part1Length += insertLength;
+		gapLength -= insertLength;
+	}
+}
+
+/// Append text to the buffer.
+void SplitVector_<N>::AppendString(<T> s[], int insertLength) {
+	InsertString(lengthBody, s, insertLength);
+}
+
+/// Append text to the buffer from another buffer.
+void SplitVector_<N>::AppendFromBuffer(SplitVector_<N> *other, int position, int insertLength) {
+
+	if ((position < 0) || ((position + insertLength) > other->lengthBody)) {
+		throw new BadPositionException();
+	}
+	// Break into two ranges around the other buffers gap
+	int lengthBeforeGap = insertLength;
+	if (position > other->part1Length) {
+		lengthBeforeGap = 0;
+	} else if ((position + insertLength) > other->part1Length) {
+		lengthBeforeGap = other->part1Length - position;
+	}
+	InsertFromArray(lengthBody, other->body, position, lengthBeforeGap);
+	int pos = position + lengthBeforeGap + other->gapLength;
+	InsertFromArray(lengthBody, other->body, pos, insertLength - lengthBeforeGap);
+}
+
+/// Fill an already allocated range with a value.
+/// Modifying outside the current range throws a
+/// BadPositionException.
+void SplitVector_<N>::FillRange(int position, int val, int fillLength) {
+	if ((position < 0) || ((position + fillLength) > lengthBody)) {
+		throw new BadPositionException();
+	}
+	// Several optimizations tried here, including block filling functions
+	// and simplifying the loops to only have one changing variable but no
+	// change made any real impact.
+	int i = 0;
+	while ((i < fillLength) && (position < part1Length)) {
+		body[position++] = (<T>)val;
+		i++;
+	}
+	position += gapLength;
+	while (i < fillLength) {
+		body[position++] = (<T>)val;
+		i++;
+	}
+}
+
+void SplitVector_<N>::Delete(int position) {
+	if ((position < 0) || (position >= lengthBody)) {
+		throw new BadPositionException();
+	}
+	DeleteRange(position, 1);
+}
+
+/// Delete a range from the buffer.
+/// Deleting positions outside the current range fails.
+void SplitVector_<N>::DeleteRange(int position, int deleteLength) {
+	if ((position < 0) || ((position + deleteLength) > lengthBody)) {
+		throw new BadPositionException();
+	}
+	if (deleteLength > 0) {
+		GapTo(position);
+		lengthBody -= deleteLength;
+		gapLength += deleteLength;
+	}
+}
+
+/// Delete all the buffer contents.
+void SplitVector_<N>::DeleteAll() {
+	DeleteRange(0, lengthBody);
+}

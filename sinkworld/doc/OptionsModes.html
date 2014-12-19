@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="Date.Modified" content="20040701" />
+    <title>Tentacle</title>
+    <link rel="stylesheet" type="text/css" href="SW.css">
+</head>
+<body>
+<div style="background-color:#333333">
+<img src="swtxt1.jpg" height="150" width="780" alt="SinkWorld banner image">
+</div>
+<h2 style="background-color:#333333;color:#B0D7FF;margin:0;padding:5px">Options and Mode files</h2>
+<p>
+Tentacle behaviour can be defined through text configuration files rather than
+being hard coded as in previous releases. The file format tries to fix some of the
+weaknesses in SciTE's properties files. The current implementation does not yet
+provide some of SciTE's properties files features such as variable substitution and
+conditional logic. Variable substitution will definitely go in but conditionals may
+not or may be implemented in a much different way.</p>
+<p>
+Tentacle divides settings into options files and mode files. Mode files define the
+behaviour for particular languages.
+Options files are for setting global
+parameters, user preferences, and user overrides of mode file settings.</p>
+<h3>Options files</h3>
+<p>Options files define a set of properties with values. Only one options file,
+user.options, in the user's home directory is currently used but in the future
+there will be global, user, and local options files similar to SciTE.</p>
+<table class="file">
+<thead><tr><td>user.options</td></tr></thead>
+<tr><td style="color:#008000"># Preferences for this user</td></tr>
+<tr><td>&nbsp;</td></tr>
+<tr><td>caret.color=#FF0000</td></tr>
+<tr><td>selection.style:back=#FFFFC7,fore=#400000</td></tr>
+<tr><td>&nbsp;</td></tr>
+<tr><td>style:</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Comment:fore=#008000,font=Comic Sans MS</td></tr>
+</table>
+<p>Lines that start with '#' like the first line are comments.</p>
+<p>The next line defines the color of the caret to be red. Property names are made up
+of parts separated by the '.' character. These multi-part names define a hierarchy much like
+a file system. All of the settings associated with the caret would start with "caret." allowing
+the caret settings to be manipulated as a group. caret.color is itself a simple item with a single value.</p>
+<p>selection.style is then defined as a compound value with both back and fore colors.
+The ':' operator is used rather than '=' to indicate a compound assignment as otherwise
+'=' and ',' could not be used inside values in assignments.
+This compound assignment is exactly equivalent to</p>
+<table class="file" width="90%">
+<thead><tr><td style="line-height:60%">&middot;&middot;&middot;</td></tr></thead>
+<tr><td>selection.style.back=#FFFFC7</td></tr>
+<tr><td>selection.style.fore=#400000</td></tr>
+<tfoot><tr><td style="line-height:60%">&middot;&middot;&middot;</td></tr></tfoot>
+</table>
+<p>The 'style:' line starts an indented segment where all property names start with 'style.'.
+This avoids repeating the same prefix many times and groups related properties.
+The segment ends with the first line that is less indented than the first line. It should also
+end before a line that has equivalent indentation to the 'style:' line but that is not yet working.
+Case is used for matching in property
+names but has no other significance so the 'Comment' name starts with an upper case 'C'
+because that is what the system calls that style. These two lines are equivalent to:</p>
+<table class="file">
+<thead><tr><td style="line-height:60%">&middot;&middot;&middot;</td></tr></thead>
+<tr><td>style.Comment.fore=#008000</td></tr>
+<tr><td>style.Comment.font=Comic Sans MS</td></tr>
+<tfoot><tr><td style="line-height:60%">&middot;&middot;&middot;</td></tr></tfoot>
+</table>
+<p>In SciTE, only some settings (style and command options) allowed compound
+assignments but Tentacle allows this for all settings. If a value needs to contain '=' or ','
+characters then it can be set with a simple assignment or by using the quoting character '\'.</p>
+<table class="file">
+<thead><tr><td style="line-height:60%">&middot;&middot;&middot;</td></tr></thead>
+<tr><td>Word:bold=1,backdecoration={type=RoundedBox,fore=#0080A0,alpha=40,alphaoutline=80}
+</td></tr>
+<tfoot><tr><td style="line-height:60%">&middot;&middot;&middot;</td></tr></tfoot>
+</table>
+<p>Compound values can be set inline using '{' and '}'.</p>
+<h3>Mode files</h3>
+<p>Mode files define behaviour for a language or group of languages. They create a
+name scope based on their file name so will not interfere with other mode files or
+options files. Mode files use file names like "&lt;xxx&gt;.mode"
+and the names of all properties defined within the mode file will start with
+"mode.&lt;xxx&gt;" so the file</p>
+<table class="file">
+<thead><tr><td>python.mode</td></tr></thead>
+<tr><td>selection.style:fore=#000080</td></tr>
+</table>
+<p>will define a property "mode.python.selection.style.fore".</p>
+<p>All property evaluations act relative to a current mode. If a Python file
+is opened then the current mode could be "mode.python", in which case
+evaluating "selection.style.fore" would return "#000080". Modes have
+superclasses from which they inherit properties.</p>
+<table class="file">
+<thead><tr><td>javascript.mode</td></tr></thead>
+<tr><td style="color:#008000"># Base mode for JavaScript, ECMAScript, ActionScript, etc.</td></tr>
+<tr><td style="color:#008000"># Names are implicitly scoped starting with mode.javascript</td></tr>
+<tr><td>name=JavaScript</td></tr>
+<tr><td>extensions=js</td></tr>
+<tr><td>lexer=CPP</td></tr>
+<tr><td>keywords.1=abstract assert boolean break byte case catch \</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char class const continue default do double else</td></tr>
+<tr><td>style:</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:fore=#D0D0D0</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Comment:fore=#008000,font=Comic Sans MS</td></tr>
+</table>
+<p />
+<table class="file">
+<thead><tr><td>htmlscripted.mode</td></tr></thead>
+<tr><td style="color:#008000"># Modes for HTML with embedded scripts</td></tr>
+<tr><td>name=Scripted HTML</td></tr>
+<tr><td>extensions=html</td></tr>
+<tr><td>super=mode.html</td></tr>
+<tr><td>submodes=mode.htmlscripted.js_client</td></tr>
+<tr><td>layers=mode.base.url</td></tr>
+<tr><td>&nbsp;</td></tr>
+<tr><td style="color:#008000"># Client side JavaScript mode.htmlscripted.js_client</td></tr>
+<tr><td>js_client:</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;super=mode.javascript</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;extensions=</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;style:</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Default:back=#f0f0ff,eolfilled=1</td></tr>
+</table>
+<h4>Subclass modes</h4>
+<p>In this example, the client side JavaScript mode (mode.htmlscripted.js_client) is a
+subclass of JavaScript and so
+inherits the lexer and style properties from mode.javascript. This is specified by the 'super'
+property and not by inclusion in javascript.mode or by having a common prefix although
+these could be considered as alternative inheritance techniques.
+The superclass mode is explicit as that allows for more flexibility across files.
+Long values can be continued onto the following line by ending the line with a '\'.</p>
+<h4>Submodes</h4>
+<p>HTML allows scripts in multiple languages to be embedded within pages
+and these are incorporated into the mode by specifying them in the submodes
+property. In this example, a JavaScript mode is included. This mode is separate
+from the base JavaScript mode so that it can inherit most settings but choose
+different settings such as a distinctive background color and extensions is set
+to "" so that only mode.javascript is trying to claim .js files.</p>
+<h4>Layers</h4>
+<p>Layers are similar to submodes but are used when a mode is not merged so
+closely into the main mode but is considered more of an orthogonal feature. Example
+layers are URL highlighters or spell checkers. The set of layers is defined in the
+layers property, in this case an URL checker. Layers can use styling information
+from the main mode, be turned on or off independently of the main mode without
+disrupting existing state, and be performed as a background task that lags the main
+mode where the layer is performing a slow task such as parsing a programming
+language or checking URLs for validity.</p>
+<h4>Isolation</h4>
+<p>SciTE users often incorrectly expect that setting a value in python.properties
+will only affect Python files. Tentacle avoids this problem by isolating mode files.</p>
+<p>Mode files are unable to set top level properties so are only able to affect their
+own modes and modes that explicitly use them. Options files, however, can define
+top level properties and can also access mode settings by fully qualifying a setting
+such as "mode.javascript.name=Basic JavaScript" thus overriding the mode file's
+choice. Overriding does not work yet.
+<p>
+In SciTE the application decides whether settings are global or local to a lexer
+or a file pattern so the user is unable to, for example, choose to display XML files
+as UTF-8 but C++ files as Latin-1.
+With Tentacle options the user may set any property globally or only within a mode.</p>
+<h4>Collections</h4>
+<p>With SciTE properties files it is difficult to collect settings from multiple
+files to create a shared list such as the "Language" menu or mapping extensions
+to modes. With Tentacle modes files, each mode provides a setting and these are
+collected by iterating over the full set looking for a particular suffix. When a file
+is opened the set of extensions properties is checked and the mode that includes the
+file's extension is used to interpret the file.</p>
+<h4>YAML</h4>
+<p>This format is somewhat similar to
+<a href="http://www.yaml.org/">YAML</a>. The reasons for not choosing
+to use YAML or a subset of YAML are that YAML requires more syntax.</p>
+<p>XML can also be used for configuration files but it is a dreadful format to edit
+manually.</p>
+<h4>Encoding</h4>
+<p>Options and Mode files are encoded in UTF-8.</p>
+<h3>SinkWorld considerations</h3>
+<p>SinkWorld provides the OptionSet class for holding the users preferences in
+memory and this includes reading a buffer into an OptionSet but does not include
+any of the file operations which should be provided by the application. This allows the
+application to determine its policy on which files to read and what their precedence
+is. The application may also choose to read preferences from a system registry or
+database. </p>
+<p>Many parts of SinkWorld such as lexers may need configuring and the set
+of parameters is open ended so it is easier to allow access to the option set object
+and current mode from lexers.</p>
+</body>
+</html>

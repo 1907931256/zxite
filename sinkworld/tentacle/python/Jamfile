@@ -1,0 +1,128 @@
+# Copyright David Abrahams 2003. See accompanying LICENSE for terms
+# and conditions of use.
+
+if $(NT) {
+    syslibs = user32 gdi32 comdlg32 Msimg32 ;
+} else {
+    gtkcflags = "-DXTHREADS -D_REENTRANT -DXUSE_MTSAFE_API -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/X11R6/include -I/usr/include/atk-1.0 -I/usr/include/pango-1.0 -I/usr/include/freetype2 -I/usr/include/freetype2/config -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include" ;
+    gtklinkflags = "-Wl,--export-dynamic -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgdk_pixbuf-2.0 -lm -lpangoxft-1.0 -lpangox-1.0 -lpango-1.0 -lgobject-2.0 -lgmodule-2.0 -ldl -lglib-2.0" ;
+    gtkincludes = /usr/include/gtk-2.0 /usr/lib/gtk-2.0/include /usr/X11R6/include /usr/include/atk-1.0 /usr/include/pango-1.0 /usr/include/freetype2 /usr/include/freetype2/config /usr/include/glib-2.0 /usr/lib/glib-2.0/include  /usr/include/pygtk-2.0 ;
+}
+
+# This is the top of our own project tree
+project-root ;
+
+# Declares the following targets:
+#    
+#  1. an extension module called "SinkWorld", which is
+#     built from "SinkWorld.cpp". Built by default
+#
+#  2. A test target called my-test.test which runs
+#     SinkWorld.py with the extension module above. Built
+#     when out-of date, but only if invoked by name or if the global
+#     "test" target is invoked.
+#
+#  3. A test target called my-test.run wihch runs the above test
+#     unconditionally. Built only when invoked by name.
+#
+# To see verbose test output, add "-sPYTHON_TEST_ARGS=-v" to the bjam
+# command-line before the first target.
+#
+
+# Include definitions needed for Python modules
+import python ;
+
+# ----- SinkWorld -------
+
+# Declare a Python extension called SinkWorld
+extension SinkWorld
+: # sources
+  SinkWorld.cpp 
+add_UniConversion.cpp add_BadPositionException.cpp 
+add_CharacterFragmentException.cpp add_IStyles.cpp 
+add_SinglePosition.cpp add_SplitVector_0.cpp add_SplitVector_1.cpp 
+add_SplitVector_2.cpp add_SplitVector_4.cpp add_SimpleIntegerVector.cpp 
+add_SetIntegers.cpp add_MaxFinder.cpp add_Partitioning.cpp 
+add_UndoAction.cpp add_UndoStack.cpp add_LineData.cpp 
+add_RunStyles.cpp add_Substance.cpp add_SubstanceUTF8.cpp 
+add_SubstanceByte.cpp add_SubstanceUTF16.cpp 
+add_SubstanceUTF16LE.cpp add_SubstanceUTF16BE.cpp add_SplitText.cpp 
+add_Literal.cpp add_KeyWords.cpp add_WordList.cpp add_Styler.cpp 
+add_IPrototype.cpp add_ILexer.cpp add_History.cpp add_SymbolTable.cpp 
+add_OptionSet.cpp add_LiteralSet.cpp add_LexBase.cpp 
+add_LexScript.cpp add_TextPositions.cpp add_ByteBuffer.cpp
+add_ChangePositionsEntry.cpp add_SubMode.cpp add_Layer.cpp 
+add_PaintContext.cpp add_LineCacheEntry.cpp add_PaintParameters.cpp 
+add_IPaintPhase.cpp add_PhaseBack.cpp add_PhaseText.cpp 
+add_PhaseDecoration.cpp add_PositionCacheEntry.cpp add_Point.cpp 
+add_IDocumentChangeListener.cpp add_TextColumn.cpp 
+add_TentacleControl.cpp add_ChangeFinder.cpp add_ChangeLayer.cpp 
+add_ChangePositionsCache.cpp 
+add_BaseDecoration.cpp
+add_DecorationBox.cpp add_DecorationButton.cpp 
+add_DecorationCaret.cpp add_DecorationGraduatedBox.cpp 
+add_DecorationStrikeOut.cpp add_DecorationRoundedBox.cpp add_DecorationUnderLine.cpp 
+add_Document.cpp 
+add_PhysicalLayout.cpp add_FontDescription.cpp add_IDecoration.cpp 
+add_LinePositionCache.cpp add_PositionCache.cpp add_RegisteredDecorations.cpp 
+add_RegisteredLexers.cpp add_RGBColor.cpp add_RangeSelection.cpp add_Style.cpp 
+add_StyleLayer.cpp add_StyleModification.cpp add_StyleSetCollection.cpp 
+add_StyleSet.cpp add_SubstanceLayer.cpp add_Surface.cpp add_TextView.cpp
+add_PrototypeRegistry.cpp
+../cxx/BaseDecoration.cxx
+../cxx/ChangeFinder.cxx
+../cxx/ChangePositionsCache.cxx
+../cxx/DecorationBox.cxx
+../cxx/DecorationButton.cxx
+../cxx/DecorationCaret.cxx
+../cxx/DecorationGraduatedBox.cxx
+../cxx/DecorationStrikeOut.cxx
+../cxx/DecorationRoundedBox.cxx
+../cxx/DecorationUnderLine.cxx
+../cxx/Document.cxx
+../cxx/LinePositionCache.cxx
+../cxx/PhasedPaint.cxx
+../cxx/PositionCache.cxx
+../cxx/RegisteredDecorations.cxx
+../cxx/RegisteredLexers.cxx
+../cxx/StyleModification.cxx
+../cxx/SubstanceLayer.cxx
+../cxx/Surface.cxx
+../cxx/TentacleControl.cxx
+../cxx/TextView.cxx
+../../base/Dictionary.cxx ../../base/KeyWords.cxx ../../base/Literal.cxx 
+../../base/MaxFinder.cxx ../../base/OptionSet.cxx   ../../base/RunStyles.cxx 
+../../base/SinglePosition.cxx ../../base/SplitText.cxx 
+../../base/SplitVector_0.cxx   ../../base/SplitVector_1.cxx 
+../../base/SplitVector_2.cxx ../../base/SplitVector_4.cxx   
+../../base/Substance.cxx ../../base/UniConversion.cxx ../../base/WordList.cxx
+../../base/PrototypeRegistry.cxx ../../base/History.cxx
+../../lexers/LexCPP.cxx
+../../lexers/LexPreProc.cxx
+../../lexers/LexASP.cxx
+../../lexers/LexHTML.cxx
+../../lexers/LexPython.cxx
+../../lexers/LexVB.cxx
+../../lexers/LexPHP.cxx
+../../lexers/LexSpell.cxx
+../../lexers/LexURL.cxx
+../../lexers/LexBraceCount.cxx
+../../lexers/FoldBraceCount.cxx
+  # requirements and dependencies for Boost.Python extensions
+  <template>@boost/libs/python/build/extension
+  : 
+  <find-library>$(syslibs)
+  <include>../../base
+  <include>../../lexers
+  <include>../cxx
+  <cflags>$(gtkcflags)
+  <linkflags>$(gtklinkflags)
+  <include>$(gtkincludes)
+  ;
+
+# Declare a test for the extension module
+boost-python-runtest SinkWorld
+    :  # Python test driver
+    test_SinkWorld.py
+    # extension modules to use
+    <pyd>SinkWorld ;

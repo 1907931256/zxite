@@ -1,0 +1,35 @@
+0=ASP.HTML.Default
+1=ASP.HTML.Comment
+2=ASP.HTML.Tag
+3=ASP.HTML.TagUnknown
+4=ASP.HTML.Attribute
+5=ASP.HTML.AttributeUnknown
+6=ASP.HTML.Number
+7=ASP.HTML.DoubleString
+8=ASP.HTML.SingleString
+9=ASP.HTML.Other
+10=ASP.HTML.Entity
+11=ASP.HTML.TagEnd
+12=ASP.HTML.XMLStart
+13=ASP.HTML.XMLEnd
+14=ASP.HTML.Script
+15=ASP.HTML.CDATA
+16=ASP.HTML.Value
+17=ASP.HTML.SGML
+18=ASP.HTML.SGMLCommand
+19=ASP.HTML.SGMLDoubleString
+20=ASP.HTML.SGMLSimpleString
+21=ASP.ASP
+22=ASP.ASPAt
+{21}<%@{22}language=javas{21}%>{0}
+{21}<% 
+#include 
+function x() {
+}
+%>{0}
+{21}<%@{22}language=vbscript{21}%>{0}
+{21}<% 
+sub x 'comment 
+%>{0}
+{3}<head{2}>{0}
+{3}<body{2}>{3}</body{2}>{0}

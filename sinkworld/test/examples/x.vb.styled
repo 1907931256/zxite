@@ -1,0 +1,18 @@
+0=VB.Default
+1=VB.Comment
+2=VB.Number
+3=VB.Quoted
+4=VB.Preprocessor
+5=VB.Operator
+6=VB.Date
+7=VB.Identifier
+8=VB.KeyWord
+{1}' String"{0}
+{8}Dim{0} {7}a{0} {8}As{0} {8}String{0} {5}={0} {3}"hello, world"{0}
+{8}Dim{0} {7}b{0} {8}As{0} {8}String{0} {5}={0} {3}"hello    world"{0}
+{8}Dim{0} {7}c{0} {8}As{0} {8}String{0} {5}={0} {3}"Joe said ""Hello"" to me"{0}
+{8}Dim{0} {7}d{0} {8}As{0} {8}String{0} {5}={0} {3}"\\\\server\\share\\file.txt"{0}
+{1}' Character{0}
+{3}""C{0} {3}"c"C{0} {3}"cc"C{0}
+{1}' Date{0}
+{7}d{0} {5}={0} {6}#5/31/1993#{0} {8}or{0} {6}# 01/01/0001 12:00:00AM #{0}

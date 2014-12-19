@@ -1,0 +1,120 @@
+// SinkWorld SplitVector template.
+// Copyright 2001 Neil Hodgson
+// File written in <L> subset of C++ for automatic translation to Java and C#.
+
+/// Split buffer template class.
+/// All implementations are expanded over the <T> type and 
+/// <N> number of bytes used for names.
+
+SW_PUBLIC class SplitVector_<N> : public IStyles {
+protected:
+	<T> *body;
+	int size;
+	int lengthBody;
+	int part1Length;
+	int gapLength;	/// invariant: gapLength == size - lengthBody
+	int growSize;
+
+	/// Move the gap to a particular position so that insertion and
+	/// deletion at that point will not require much copying and
+	/// hence be fast.
+	void GapTo(int position);
+
+	/// Reallocate the storage for the buffer to be newSize and
+	/// copy exisiting contents to the new buffer.
+	/// Must not be used to decrease the size of the buffer.
+	void ReAllocate(int newSize);
+
+	/// Check that there is room in the buffer for an insertion,
+	/// reallocating if more space needed.
+	void RoomFor(int insertionLength);
+
+	/// Insert text into the buffer from an array.
+	void InsertFromArray(int positionToInsert, <T> s[], int positionFrom, int insertLength);
+
+public:
+	/// Construct a split buffer.
+	SplitVector_<N>();
+
+	~SplitVector_<N>();
+
+	void Create(int initialLength_, int growSize_);
+
+	int GetGrowSize();
+
+	void SetGrowSize(int growSize_);
+
+	/// Retrieve the character at a particular position.
+	/// Retrieving positions outside the range of the buffer throws an exception.
+	/// OLD: Retrieving positions outside the range of the buffer works
+	/// and returns 0.
+	<T> CharAt(int position) {
+		if (position < part1Length) {
+			if (position < 0) {
+				throw new BadPositionException();
+				//return 0;
+			} else {
+				return body[position];
+			}
+		} else {
+			if (position >= lengthBody) {
+				throw new BadPositionException();
+				//return 0;
+			} else {
+				return body[gapLength + position];
+			}
+		}
+	}
+
+	int ValueAt(int position);
+
+	void SetValueAt(int position, int v);
+
+	/// Find the location after position where there is the next change in value.
+	int FindNextChange(int position, int end);
+
+	/// Retrieve the length of the buffer.
+	int Length() {
+		return lengthBody;
+	}
+
+	/// Retrieve a range of text from the buffer.
+	/// Retrieving positions outside the range of the buffer throws a
+	/// BadPositionException.
+	void RetrieveString(int position, <T> s[], int retrieveLength);
+
+	/// Insert a single value into the buffer.
+	/// Inserting at positions outside the current range throws a
+	/// BadPositionException.
+	void Insert(int position, <T> v);
+
+	/// Insert a number of zero characters into the buffer.
+	/// Inserting at positions outside the current range fails.
+	void InsertSpace(int position, int insertLength);
+
+	/// Insert text into the buffer.
+	/// Inserting at positions outside the current range throws a
+	/// BadPositionException.
+	void InsertString(int position, <T> s[], int insertLength);
+
+	/// Append text to the buffer.
+	void AppendString(<T> s[], int insertLength);
+
+	/// Append text to the buffer from another buffer.
+	void AppendFromBuffer(SplitVector_<N> *other, int position, int insertLength);
+
+	/// Fill an already allocated range with a value.
+	/// Modifying outside the current range throws a
+	/// BadPositionException.
+	void FillRange(int position, int val, int fillLength);
+
+	/// Delete one element from the buffer.
+	void Delete(int position);
+
+	/// Delete a range from the buffer.
+	/// Deleting positions outside the current range fails.
+	void DeleteRange(int position, int deleteLength);
+
+	/// Delete all the buffer contents.
+	void DeleteAll();
+};

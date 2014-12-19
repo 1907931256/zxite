@@ -1,0 +1,5 @@
+Makefile
+Makefile.in
+gtkscintilla.c
+gtkscintilla.h
+.deps

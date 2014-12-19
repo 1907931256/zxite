@@ -1,0 +1,20 @@
+# user options file
+# Settings should be active when not overridden by a mode
+
+selection.style:back=#FFFFC7
+#,box=#A00000
+selection.style.no.focus:back=#F0F0F0
+caret.color=#A08000
+size.top.proportion=100
+foldWidth=1
+lineNumberWidth=3
+
+style:
+	#Default:
+	Comment:fore=#008000
+	Number:fore=#008080
+	String:fore=#7F007F
+	Preprocessor:fore=#808000
+	Operator:fore=#000000,bold=1
+	Identifier:fore=#000000
+	KeyWord:fore=#000080

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="generator" content="SciTE" />
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta name="keywords" content="SinkWorld, Scintilla, SciTE, Editing Component, Text Editor" />
+    <meta name="Date.Modified" content="20010518" />
+    <title>SinkWorld - Scintilla future possibilities</title>
+    <link rel="stylesheet" type="text/css" href="SW.css">
+</head>
+<body>
+<img src="swtxt1.jpg" height="150" width="780" alt="SinkWorld banner image">
+<p>SinkWorld is a project to investigate changes to the core of 
+<a href="http://www.scintilla.org">Scintilla</a> to make it more flexible, robust,
+perform better and run on the .NET and Java virtual machines.
+</p>
+</body>
+</html>

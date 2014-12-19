@@ -1,0 +1,351 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="Date.Modified" content="20010515" />
+    <title>SinkWorld - Portability</title>
+    <link rel="stylesheet" type="text/css" href="SW.css">
+</head>
+<body>
+<img src="swtxt1.jpg" height="150" width="780" alt="SinkWorld banner image">
+<h2>Portability</h2>
+<p class="update">
+There are demonstration GUI front ends for the current code base.
+These are source code display applets and there is one version written in Java and
+another in C#. The demonstrations are reasonably fast downloads on a cable modem but
+may be too slow to use from a dial up line.
+</p>
+<p class="update">
+The <a href="http://www.users.bigpond.net.au/nhodgson/SwedeDemo.html">Java
+version</a> (35K) uses Swing so needs a browser with a recent
+version of Java installed.It has worked in Internet Explorer 6 on Windows 2000, and
+Mozilla on both Windows 2000 and Linux.
+The <a href="http://java.sun.com/j2se/1.3/jre/">Java Runtime Environment 1.3</a>
+was installed to provide a JVM. Use the '+' and '-' keys to zoom in and out on the text. The
+'l' key loads a small file from the server and the 'o' key a large file.
+May need to click on the applet before the keyboard will work.
+</p>
+<p class="update">
+The <a href="http://www.users.bigpond.net.au/nhodgson/swcset.html">C#
+version</a> (45K) uses .NET so needs a recent version of Internet Explorer (tested on 6.0)
+with .NET 1.0 installed.
+Either the <a href="http://msdn.microsoft.com/downloads/sample.asp?url=/msdn-files/027/000/976/msdncompositedoc.xml">
+.NET SDK</a> (140 Meg download, tested)
+or the <a href="http://msdn.microsoft.com/downloads/sample.asp?url=/msdn-files/027/001/829/msdncompositedoc.xml">
+.NET Framework</a> (22 Meg download)
+should work. The '+' and '-' keys work for zooming like the Java version but only when the
+control has focus which must be given to it by pressing the tab key until the control's
+background is yellow. There is a security restriction in .NET that stops the control from
+claiming focus when clicked on. There is a control bar at the top that calls the control.
+The first combo box downloads pieces of source from the web site and displays them.
+Code fragments can be pasted into the next control, a textarea and then
+copied into the source displayer with the Set button.
+The TextHintMode is for experimenting with some of the graphics options provided by .NET.
+</p><h3>Managed Execution</h3>
+
+<p>
+Managed execution platforms such as the Java Virtual Machine and the .NET
+Framework have become very important to many developers and are likely
+to dominate software development in the future.
+</p>
+<p>
+These platforms enhance safety by allowing components to
+interact with a greater (and sometimes scalable) degree of control imposed on
+them by the platform.
+While this has some benefits for avoiding crashes in stand-alone applications,
+it is particularly
+beneficial when combining components inside applications such as web browsers.
+</p>
+<p>
+This is of interest to Scintilla in allowing low footprint development environments.
+<a href="http://aspn.activestate.com/ASPN/Downloads/Komodo/">Komodo</a> has
+demonstrated an IDE built on the framework of a browser but is itself a
+heavyweight installation.
+Another approach to development is taken by
+<a href="http://www.zope.org/">ZOPE</a> where much of the
+development can be performed within any web browser. This does not
+provide the rich user experience available from 'thick-client' software.
+A middle ground can be reached by using technologies such as Dynamic HTML
+and applets within the browser. These technologies are becoming more viable
+as browsers are enhanced and bandwidth increases.
+</p>
+<p>
+It is probable that Scintilla can be implemented in a 40-80K applet that will download
+over a cable modem or similar in a second or so making it a viable UI element within
+browser based development environments.
+</p>
+<p>
+Plugin code, such as extra lexers, can be used to enhance Scintilla. When used within a
+managed platform, Scintilla can be allowed to safely download and integrate
+these components as needed for handling the different languages that may be used.
+</p>
+<p>
+It is unclear, at least to me, which of these platforms will be most successful
+or if another platform will be even more popular. By targeting both managed
+platforms as well as the current unmanaged platforms,
+code can be assured of running in the future, no matter which platform wins.
+This preserves the investment made in Scintilla code as well as code that uses
+Scintilla which can then be migrated to another platform more easily.
+</p>
+<p>
+.NET differentiates between several management concepts. Managed code
+runs on .NET using the memory management built into .NET.
+Verifiable managed code is a subset of managed code that can be verified as
+correct and so can be trusted to run without compromising the user's security.
+The aim with SinkWorld is to produce verifiable managed code.
+</p>
+<h3>Portability isn't hard, its just work</h3>
+<p>
+Scintilla was originally written to run on Win32 and has since been ported to the
+GTK+, wxWindows and Qt toolkits. The platform adaptation layer for one platform is
+less than 20% of the size of the platform independent code. While there are sometimes
+complexities in dealing with the unique aspects of a platform, the bulk of this code is fairly
+straightforward, providing a simple library for performing basic graphics and UI operations,
+dealing with the platform's version of events and providing an API in the style of the
+platform. The platform independent code is more intricate, with complex control paths and
+optimisations making it harder to work on.
+</p>
+<p>
+All GUI environments offer similar capabilities. Where they differ, providing only
+lowest common denominator functionality can be avoided by building rich
+functionality out of lower level functions and by allowing functionality that only
+exists on one platform. An example of this in the current version of Scintilla is that
+Unicode is only supported on Windows. Once Unicode is well supported on other
+platforms then Scintilla can be changed to provide that feature. If a platform
+doesn't provide its own Unicode support then it is also possible, although it would be
+a significant amount of work, to develop Unicode support within the platform
+adaptation layer.
+</p>
+<h3>Target Languages</h3>
+<p>
+To target these different platforms, as well as the platforms
+currently targeted by Scintilla, different programming languages
+must be used. C++ can not be used on the JVM or for verifiable managed code
+on .NET as it is an unsafe language, using machine address pointers with no
+bounds checking. .NET does allow mixing unsafe and safe code but using
+some unsafe code means that the assembly is unsafe.
+Managed C++ can be used on .NET but not to produce verifiable managed code.
+There is no C# compiler available for the JVM and while a
+<a href="http://msdn.microsoft.com/visualj/jump/default.asp">Java compiler for .NET</a>
+has been announced, no details about availability, price, or whether it will remain
+supported in the long term have been revealed.
+</p>
+<p>
+Implementing and supporting a version of Scintilla in multiple languages would
+take quite a bit of effort. This effort can be minimised if it were possible to
+compile for unmanaged platforms, the JVM, and .NET from one code base.
+</p>
+<p>
+The C++, Managed C++, C#, and Java languages are similar enough that
+very similar code can be written in each. Here is an implementation of a split
+buffer, the core class used to store text in Scintilla, in all four languages:
+</p>
+<ul>
+<li><a href="cbxh.html">C++</a></li>
+<li><a href="cbxhpp.html">Managed C++</a></li>
+<li><a href="cbxcs.html">C#</a></li>
+<li><a href="cbxjava.html">Java</a></li>
+</ul>
+<p>
+A <a href="cbxdiff.html">combined difference view</a> uses background colour to indicate how the 4 files differ.
+</p>
+<p>
+The languages are <i>so</i> similar that it is possible to automatically
+translate from one to the other with a small amount of code and this has been
+the major focus of initial SinkWorld development.
+</p>
+<p>
+The above module was the first translated by hand from C++, before the start of the
+XLang.py translation tool so code differences, such as * versus [] were
+minimised. With automatic translation, more idiomatic code can be generated.
+</p>
+<h3>C~ - a C++ subset translatable to Java and C#</h3>
+<p>
+It may be possible to translate Java or C# into C++ but C++, especially the preprocessor,
+allows a degree of freedom in writing valid source code not available in C# or Java.
+The preprocessor allows inserting instructions to the translation program that create
+valid C++ code or are empty and so disappear after preprocessing.
+This is the reason that the work done so far has been using a subset of C++ as
+the primary source representation of components. This freedom has not been needed
+so far as the development has encountered fewer problems than expected but this
+technique may be needed later.
+</p>
+<p>
+C++ is a very complex language and most developers and projects keep to a subset
+of C++. Scintilla has used a subset that does not include exceptions, templates or
+run-time type information. As Java and C# use exceptions widely, SinkWorld code
+will have to deal with exceptions and so the C++ version of the code will also need
+to handle exceptions.
+Templates or generics are not yet available for C#/.NET and are not
+standardised for Java, so any use of templates will require that the language
+translator expand templates.
+Templates do not appear necessary although it could, for example, be useful
+to parameterise the cbx class shown above by the type of data stored in the
+buffer to allow a choice between 8 bit characters and 16 bit characters.
+The run-time type information available in Java and .NET is very complete
+and useful but is far beyond that provided by C++, so will not be used
+in SinkWorld.
+</p>
+<p class="update">
+There is now a simple template expansion program, Template.py which is used
+to create 1, 2, and 4 byte wide versions of cbx to be used as styling buffers depending
+on the amount of styling information required by an application.
+</p>
+<p>
+The subset of C++ used in SinkWorld does not yet have a formal definition, and is instead
+defined by what the tools allow.
+The subset will expand over time as more code is converted to be translatable.
+Since this subset may need to be discussed, and may be defined formally, it is
+called C~, pronounced C-wriggle.
+</p>
+<p>
+Using exceptions in the C++ version does lose some portability to platforms such as WinCE
+which do not support exceptions. It may be possible to use the Java or C# translations
+for these platforms. WinCE is supposed to support .NET.
+</p>
+<p>
+In some places C++ does not differentiate as much as Java or C#. Java and C# have more
+forms of privacy than C++ and differentiate between interfaces and classes.
+As C# and Java only allow implementation inheritance from one super class,
+the C~ input must also restrict implementation inheritance and differentiate between
+classes and interfaces. This will be by a convention where interface names start with 'I'
+which is already used by some developers, particularly those using COM.
+</p>
+<p>
+C~ is a subset of C++ rather than a complete new language as it is easier to use other
+tools such as debuggers on the code if the primary representation is a current
+programming language. Developing a new language would also redirect effort towards
+defining and improving the new language rather than working on the classes.
+</p>
+<h3>XLang - an automatic translator</h3>
+<p>
+The XLang translator reads and tokenises C++ (C~) source code and then performs
+a series of lexical transformations to change C++ syntax into C# and Java syntax.
+</p>
+<p>
+Translation is done line by line so some syntax elements such as method declarations must
+currently be on one line to be handled.
+The transformations are mostly substitutions of sequences of lexemes into other sequences
+of lexemes using a small lexeme sequence description language.
+</p>
+<p>
+Currently, all class methods must be defined within the class definition, so all of a class
+is defined in one place. This should be improved in the future with the normal class
+header and implementation files merged to construct the Java/C# code.
+There is already another translator,
+<a href="http://tech.novosoft-us.com/product_c2j.jsp">C2J++</a> which can perform
+this merging.
+</p>
+<p class="update">
+Methods may now be defined either in the header or declared in a header and
+defined in a source file.
+</p>
+<p>
+The description language consists of a stream of lexeme descriptions separated by "~"
+with a literal "~" represented by "~~". Each lexeme description starts with a letter
+designating the lexical class and an optional value. An empty value matches any value.
+The lexical class letters are listed in CxxTokens.py.
+"kprivate~o:" matches the keyword "private" followed by the operator ":".
+A very simple translation would change the C++
+"NULL" constant identifier to the Java/C# "null" with<br />
+<code>tokens.substTokenStrings("iNULL", "null")</code><br />
+A more complex translation takes constants defined as enumerations and produces
+Java/C# "static int" declarations, so "enum { SCE_C_DEFAULT = 0 };" becomes
+"static int SCE_C_DEFAULT = 0;" with<br />
+<code>tokens.substTokenStrings("kenum~o{~i~o=~m~o}", "static int $2 = $4", 1)</code><br />
+which uses the final "ignore whitespace" argument to handle situations where optional whitespace
+may appear between elements. The "$n" substitutions refer to the values that match
+each lexeme.
+</p>
+<p>
+By acting on lexemes XLang can avoid some of the context sensitivity problems that
+would occur if it used regular expressions to match input. However, this means that
+it does not have many of the features of regular expressions such as matching "any number" or
+"one or more" elements which would be useful when matching constructs such as a list of
+type keywords like "const unsigned long".
+</p>
+<h3>Current code</h3>
+<p>
+The current code can be <a href="SinkWorld.zip">downloaded</a>.
+It is also available from the sinkworld module in the Scintilla CVS.
+This code only works completely on Windows NT and Windows 2000.
+Building all the code requires quite a few tools:
+<a href="http://msdn.microsoft.com/net/">Microsoft .NET Beta 1</a>,
+<a href="http://www.python.org/">Python</a>,
+<a href="http://java.sun.com/j2se/">Java</a>,
+JUnit, NUnit, and CppUnit. It should be possible to translate to Java and build that
+without .NET installed with "make mj.class". To allow deployment to users without
+all these tools in the future there will also be distributions with all the code generation
+already performed so someone using the Java translation will only need a Java compiler.
+</p>
+<p>
+Four classes have been implemented:
+<ul>
+<li>cbx is a split buffer of characters</li>
+<li>pbx combines
+two split buffers with one storing text and the other the corresponding styling information
+(equivalent to the CellBuffer class in Scintilla)</li>
+<li>SAccessor acts as intermediary to access the data in a pbx holding a styling cursor
+(equivalent to the Accessor interface and its implementations in Scintilla)</li>
+<li>LexCPP
+implements a C++ lexer which reads text from an SAccessor and writes styles to it</li>
+<li class="update">cbx_0, cbx_1, cbx_2, and cbx_4 are split buffers of 0 byte,
+1 byte, 2 byte or 4 byte values which may be used as styling buffers.
+cbx_1 is used as the text buffer.</li>
+<li class="update">undoStack and undoAction implement undo and redo.</li>
+<li class="update">giv is an integer vector that uses a gap to avoid copying
+like cbx_*.</li>
+<li class="update">lv is derived from giv and is used to store the position
+of each line in a buffer. It uses a 'step' to avoid many addition operations when
+inserting and removing text.</li>
+</ul>
+</p>
+<p>
+These classes are implemented in C++ and Managed C++ and the C++ implementations
+are automatically converted to C# and Java implementations.
+There is also some support code:
+</p>
+<ul>
+<li>a library of environment functions for logging,
+timing and assertions implemented in each of the four languages</li>
+<li>a declaration of a "BadPositionException" class in each language
+as XLang doesn't yet know how
+to translate exception declarations</li>
+<li>a short test application written in each language. The Java and C# versions
+do something almost useful by converting a small piece of C code to styled HTML.</li>
+<li>a unit test module for
+C++ (using an older version of <a href="http://cppunit.sourceforge.net/">CppUnit</a>),
+Java (<a href="http://www.junit.org/">JUnit</a>), and
+C# (<a href="http://nunit.sourceforge.net/">NUnit</a>).
+The Java and C# unit tests are quite good due to the quality of the underlying
+unit test frameworks but the C++ tests are not as robust due to
+the relative immaturity of CppUnit and the lack of universal standard for reflection and
+dynamic loading in C++.</li>
+</ul>
+<p class="update">
+The Managed C++ version has not been updated with the new classes.
+</p>
+<p>
+The use of unit testing frameworks is very important in this project to ensure that the
+automatically translated code has the same behaviour in each translation.
+</p>
+<h3>Open Questions</h3>
+<p>
+<ul>
+<li>Will this work?</li>
+<li>Is a lexical translator strong enough or should a parser and tree transformer
+be developed?</li>
+<li>Will the translated code be good enough to work with or will it be a difficult
+to debug mess like the C code produce by Cfront from C++?</li>
+<li>How do you know whether the C++ you write is good C~?</li>
+<li>Is this a good use of the languages, or will the translated code perform badly
+and suffer from errors such as bad type translations?</li>
+</ul>
+</p>
+<p class="update">
+The current code performs well with the slowest translation being around one third of
+C++ speed. This code is faster than Scintilla because of better data strucures.
+</p>
+</body>
+</html>

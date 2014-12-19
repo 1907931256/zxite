@@ -1,0 +1,28 @@
+0=HTML.Default
+1=HTML.Comment
+2=HTML.Tag
+3=HTML.TagUnknown
+4=HTML.Attribute
+5=HTML.AttributeUnknown
+6=HTML.Number
+7=HTML.DoubleString
+8=HTML.SingleString
+9=HTML.Other
+10=HTML.Entity
+11=HTML.TagEnd
+12=HTML.XMLStart
+13=HTML.XMLEnd
+14=HTML.Script
+15=HTML.CDATA
+16=HTML.Value
+17=HTML.SGML
+18=HTML.SGMLCommand
+19=HTML.SGMLDoubleString
+20=HTML.SGMLSimpleString
+{2}<html{9} {5}xmlns{9}={7}"http://www.w3.org/1999/xhtml"{2}>{0}
+{2}<head>{0}
+    {2}<meta{9} {5}name{9}={7}"Date.Modified"{9} {5}content{9}={7}"20010515"{9} {2}/>{0}
+    {2}<title>{0}SinkWorld - Portability{2}</title>{0}
+    {3}<unknown{2}>{0}SinkWorld - Portability{3}</unknown{2}>{0}
+    {2}<link{9} {5}rel{9}={7}"stylesheet"{9} {5}type{9}={7}"text/css"{9} {5}href{9}={7}"SW.css"{2}>{0}
+{2}</head>{0}

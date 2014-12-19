@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+	<xs:element name="Scintilla">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="globals" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="value" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:simpleContent>
+										<xs:extension base="xs:string">
+											<xs:attribute name="name" type="xs:string" use="required" />
+										</xs:extension>
+									</xs:simpleContent>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="style-classes" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="style-class" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:attribute name="name" type="xs:string" use="required" />
+									<xs:attribute name="fore" type="xs:string" />
+									<xs:attribute name="back" type="xs:string" />
+									<xs:attribute name="size" type="xs:string" />
+									<xs:attribute name="font" type="xs:string" />
+									<xs:attribute name="bold">
+										<xs:simpleType>
+											<xs:restriction base="xs:NMTOKEN">
+												<xs:enumeration value="true" />
+												<xs:enumeration value="false" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="italics">
+										<xs:simpleType>
+											<xs:restriction base="xs:NMTOKEN">
+												<xs:enumeration value="true" />
+												<xs:enumeration value="false" />
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="inherit-style" type="xs:string" />
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="keyword-classes" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="keyword-class" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:simpleContent>
+										<xs:extension base="xs:string">
+											<xs:attribute name="name" type="xs:string" use="required" />
+										</xs:extension>
+									</xs:simpleContent>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="language" minOccurs="0" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="lexer" minOccurs="0">
+								<xs:complexType>
+									<xs:attribute name="name" type="xs:string" use="required" />
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="file-extensions" type="xs:string" minOccurs="0" />
+							<xs:element name="use-keywords" minOccurs="0">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="keyword" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:attribute name="key" type="xs:string" use="required" />
+												<xs:attribute name="class" type="xs:string" use="required" />
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="use-styles" minOccurs="0">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="style" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:attribute name="name" type="xs:string" />
+												<xs:attribute name="key" type="xs:string" use="required" />
+												<xs:attribute name="class" type="xs:string" use="required" />
+												<xs:attribute name="fore" type="xs:string" />
+												<xs:attribute name="back" type="xs:string" />
+												<xs:attribute name="size" type="xs:string" />
+												<xs:attribute name="font" type="xs:string" />
+												<xs:attribute name="bold">
+													<xs:simpleType>
+														<xs:restriction base="xs:NMTOKEN">
+															<xs:enumeration value="true" />
+															<xs:enumeration value="false" />
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="italics">
+													<xs:simpleType>
+														<xs:restriction base="xs:NMTOKEN">
+															<xs:enumeration value="true" />
+															<xs:enumeration value="false" />
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="name" type="xs:string" use="required" />
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

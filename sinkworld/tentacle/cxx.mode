@@ -1,0 +1,91 @@
+# cxx.mode: modes for C like languages
+# names are implicitly scoped by the file as starting with mode.cxx
+
+selection.style:back=#FFF2E7
+selection.style.no.focus:back=#F0F0F0
+
+# C++ is taken as the archetype of the C language family
+# so C++ is the primary mode in this file and not indented
+
+# C++ mode
+# mode.cxx
+
+name=C++
+extensions=cxx cpp h hpp hxx
+filter=C (.c;.cpp;.cxx;.h;.cs;.java)|*.c;*.cpp;*.cxx;*.h;*.cs;*.java
+lexer=CPP
+folder=FoldBraceCount
+keywords.1=and and_eq asm auto bitand bitor bool break \
+	case catch char class compl const const_cast continue \
+	default delete do double dynamic_cast else enum explicit \
+	export extern false float for friend goto if inline int long \
+	mutable namespace new not not_eq operator or or_eq \
+	private protected public register reinterpret_cast return \
+	short signed sizeof static static_cast struct switch \
+	template this throw true try typedef typeid typename \
+	union unsigned using virtual void volatile wchar_t while \
+	xor xor_eq
+style:
+	Default:fore=#D0D0D0
+	Comment:fore=#008000,font=Comic Sans MS
+	CommentLine:fore=#008000,font=Comic Sans MS
+	CommentDoc:fore=#008000,italics=1
+	CommentLineDoc:fore=#008000
+	Operator:fore=#000000,bold=1
+	Preprocessor:fore=#808000,size=8
+	Identifier:fore=#000000,bold=0
+	KeyWord:fore=#000080,bold=1
+
+# Basic C mode
+# mode.cxx.c
+c:
+	extensions=c
+	super=mode.cxx
+	name=C
+	style.Default=font=Verdana,size=10
+
+# Java
+# mode.cxx.java
+java:
+	extensions=java
+	super=mode.cxx
+	name=Java
+	keywords.1=abstract assert boolean break byte case catch \
+		char class const continue default do double else \
+		extends final finally float for future generic goto if \
+		implements import inner instanceof int interface long \
+		native new null outer package private protected public \
+		rest return short static super switch synchronized this \
+		throw throws transient try var void volatile while
+
+# C#
+# mode.base.cs
+cs:
+	extensions=cs
+	super=mode.cxx
+	name=C#
+	keywords.1=abstract as base bool break byte case catch char \
+		checked class const continue decimal default delegate \
+		do double else enum event explicit extern false finally \
+		fixed float for foreach goto if implicit in int interface \
+		internal is lock long namespace new null object operator \
+		out override params private protected public readonly ref \
+		return sbyte sealed short sizeof stackalloc static string \
+		struct switch this throw true try typedef typeof uint \
+		ulong unchecked unsafe ushort using virtual while
+
+# JavaScript
+# mode.cxx.javascript
+javascript:
+	extensions=js
+	super=mode.cxx
+	name=JavaScript
+	identifiers=javascript jscript
+	keywords.1=abstract boolean break byte case catch char class \
+		const continue debugger default delete do double else \
+		enum export extends final finally float for function goto if \
+		implements import in instanceof int interface long native \
+		new package private protected public return short static \
+		super switch synchronized this throw throws transient try \
+		typeof var void volatile while with
+

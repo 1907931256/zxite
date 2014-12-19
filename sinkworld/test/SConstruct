@@ -1,0 +1,17 @@
+# The construction file for SinkWorld test programs
+import os
+import sys
+import glob
+root = ".." + os.sep
+src = root + "cxx"
+cppunit = "../../../cppunit"
+cppunitinc = os.path.join(cppunit, "include")
+cppunitlib = os.path.join(cppunit, "lib")
+
+#~ Repository(src)
+env = Environment(CXXFLAGS = ["-nologo", "-EHsc", "-MD"], 
+	CPPPATH=[src, cppunitinc], LIBPATH=[src, cppunitlib])
+env.Program("mc", ["mc.cxx", "SWTest.cxx"], LIBS = ["SWBase"])
+# $(CC) $(CCOPTS) -I $(CPPUNITDIR)\include SimpleTest.cxx SWTest.cxx $(COBJS) $(CPPUNITSRC) Kernel32.lib /link /FORCE:MULTIPLE
+env.Program("SimpleTest", "SimpleTest.cxx", LIBS = ["SWBase", "cppunit"])
+env.Program("stest", "stest.cxx", LIBS = ["SWBase"])

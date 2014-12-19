@@ -1,0 +1,23 @@
+MarkerHandleSet::MarkerHandleSet() {
+	root = 0;
+}
+
+MarkerHandleSet::~MarkerHandleSet() {
+	MarkerHandleNumber *mhn = root;
+	while (mhn) {
+		MarkerHandleNumber *mhnToFree = mhn;
+		mhn = mhn->next;
+		delete mhnToFree;
+	}
+	root = 0;
+}
+
+int MarkerHandleSet::Length() {
+	int c = 0;
+	MarkerHandleNumber *mhn = root;
+	while (mhn) {
+		c++;
+		mhn = mhn->next;
+	}
+	return c;
+}

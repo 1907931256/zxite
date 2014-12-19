@@ -1,0 +1,328 @@
+2003-03-29  Sven Herzberg  <herzi@gnome-de.org>
+
+	* gtkscintilla-2.0/Makefile.am: fixed installation path of
+	gtkscintilla.h
+
+2003-03-28  Sven Herzberg  <herzi@gnome-de.org>
+
+	* data/scigen.py.in: another error (now it really works as expected)
+
+2003-03-22  Sven Herzberg  <herzi@gnome-de.org>
+
+	* .cvsignore: cvs updates cleaner now
+	* data/.cvsignore: cvs updates cleaner now
+	* data/scigen.py.in: fixed error
+	* gtkscintilla-2.0/.cvsignore: cvs updates cleaner now
+	* scintilla-lib/.cvsignore: cvs updates cleaner now
+
+2003-03-22  Sven Herzberg  <herzi@gnome-de.org>
+
+	* data/.cvsignore: cvs updates cleanly now
+	* debian/.cvsignore: cvs updates cleanly now
+	* gtkscintilla-2.0/.cvsignore: cvs updates cleanly now
+	* scintilla-lib/.cvsignore: cvs updates cleanly now
+
+2003-03-22  Sven Herzberg  <herzi@gnome-de.org>
+
+	* .cvsignore: removed some entries
+	* Makefile.am: added new subdirs
+	* configure.in: added new subdirs
+	* data/.cvsignore: added irgnore-entries
+	* data/scigen.py.in: moved creation script into here
+	* debian/Makefile.am: added debian files to distribution
+	* debian/changelog: to create .debs
+	* debian/compat: to create .debs
+	* debian/control: to create .debs
+	* debian/copyright: to create .debs
+	* debian/dirs: to create .debs
+	* debian/docs: to create .debs
+	* debian/files: to create .debs
+	* debian/libgtkscintilla2.0-0.dirs: to create .debs
+	* debian/libgtkscintilla2.0-0.files: to create .debs
+	* debian/libgtkscintilla2.0-0.postinst.debhelper: to create .debs
+	* debian/libgtkscintilla2.0-0.postrm.debhelper: to create .debs
+	* debian/libgtkscintilla2.0-0.substvars: to create .debs
+	* debian/libgtkscintilla2.0-dev.dirs: to create .debs
+	* debian/libgtkscintilla2.0-dev.files: to create .debs
+	* debian/rules: to create .debs
+	* gtkscintilla-2.0/Makefile.am: moved library files into here
+	* gtkscintilla-2.0/gtkscintilla.ctmpl: moved library files into here
+	* gtkscintilla-2.0/gtkscintilla.htmpl: moved library files into here
+	* gtkscintilla.c.in: moved
+	* gtkscintilla.h.in: moved
+	* scigen.py.in: moved
+	* scintilla-lib/Makefile.am: file to create a libtool scintilla
+	library
+	* scintilla/Makefile.am: only includes distribution files now
+
+2003-03-18  Sven Herzberg  <herzi@gnome-de.org>
+
+	* .cvsignore: added to make cvs update behave nicer
+	* scintilla/.cvsignore: added to make cvs update behave nicer
+
+2003-03-18  Sven Herzberg  <herzi@gnome-de.org>
+
+	* Makefile.am: fixed distribution of files
+	* configure.in: changed PACKAGE to gtkscintilla-2.0
+	* scintilla/Makefile.am: fixed distribution of files; "make dist"
+	creates nice tarballs now
+
+2003-03-18  Sven Herzberg  <herzi@gnome-de.org>
+
+	* Makefile.am: fixed an error in "make clean"
+	* scintilla/License.txt: updated to a new cvs-tree of scintilla
+	compiles cleanly now
+	* scintilla/README:
+	* scintilla/delbin.bat:
+	* scintilla/delcvs.bat:
+	* scintilla/doc/Design.html:
+	* scintilla/doc/Lexer.txt:
+	* scintilla/doc/SciCoding.html:
+	* scintilla/doc/ScintillaDoc.html:
+	* scintilla/doc/ScintillaDownload.html:
+	* scintilla/doc/ScintillaHistory.html:
+	* scintilla/doc/ScintillaRelated.html:
+	* scintilla/doc/ScintillaToDo.html:
+	* scintilla/doc/ScintillaUsage.html:
+	* scintilla/doc/Steps.html:
+	* scintilla/doc/index.html:
+	* scintilla/gtk/PlatGTK.cxx:
+	* scintilla/gtk/ScintillaGTK.cxx:
+	* scintilla/gtk/makefile:
+	* scintilla/gtk/scintilla.mak:
+	* scintilla/include/Accessor.h:
+	* scintilla/include/Face.py:
+	* scintilla/include/HFacer.py:
+	* scintilla/include/KeyWords.h:
+	* scintilla/include/Platform.h:
+	* scintilla/include/PropSet.h:
+	* scintilla/include/SString.h:
+	* scintilla/include/SciLexer.h:
+	* scintilla/include/Scintilla.h:
+	* scintilla/include/Scintilla.iface:
+	* scintilla/include/ScintillaWidget.h:
+	* scintilla/include/WindowAccessor.h:
+	* scintilla/readme:
+	* scintilla/src/AutoComplete.cxx:
+	* scintilla/src/AutoComplete.h:
+	* scintilla/src/CallTip.cxx:
+	* scintilla/src/CallTip.h:
+	* scintilla/src/CellBuffer.cxx:
+	* scintilla/src/CellBuffer.h:
+	* scintilla/src/ContractionState.cxx:
+	* scintilla/src/ContractionState.h:
+	* scintilla/src/Document.cxx:
+	* scintilla/src/Document.h:
+	* scintilla/src/DocumentAccessor.cxx:
+	* scintilla/src/DocumentAccessor.h:
+	* scintilla/src/Editor.cxx:
+	* scintilla/src/Editor.h:
+	* scintilla/src/Indicator.cxx:
+	* scintilla/src/Indicator.h:
+	* scintilla/src/KeyMap.cxx:
+	* scintilla/src/KeyMap.h:
+	* scintilla/src/KeyWords.cxx:
+	* scintilla/src/LexAVE.cxx:
+	* scintilla/src/LexAda.cxx:
+	* scintilla/src/LexAsm.cxx:
+	* scintilla/src/LexBaan.cxx:
+	* scintilla/src/LexBullant.cxx:
+	* scintilla/src/LexCPP.cxx:
+	* scintilla/src/LexCSS.cxx:
+	* scintilla/src/LexConf.cxx:
+	* scintilla/src/LexCrontab.cxx:
+	* scintilla/src/LexEiffel.cxx:
+	* scintilla/src/LexFortran.cxx:
+	* scintilla/src/LexGen.py:
+	* scintilla/src/LexHTML.cxx:
+	* scintilla/src/LexLisp.cxx:
+	* scintilla/src/LexLua.cxx:
+	* scintilla/src/LexMatlab.cxx:
+	* scintilla/src/LexOthers.cxx:
+	* scintilla/src/LexPOV.cxx:
+	* scintilla/src/LexPascal.cxx:
+	* scintilla/src/LexPerl.cxx:
+	* scintilla/src/LexPython.cxx:
+	* scintilla/src/LexRuby.cxx:
+	* scintilla/src/LexSQL.cxx:
+	* scintilla/src/LexVB.cxx:
+	* scintilla/src/LineMarker.cxx:
+	* scintilla/src/LineMarker.h:
+	* scintilla/src/PropSet.cxx:
+	* scintilla/src/RESearch.cxx:
+	* scintilla/src/RESearch.h:
+	* scintilla/src/SVector.h:
+	* scintilla/src/SciTE.properties:
+	* scintilla/src/ScintillaBase.cxx:
+	* scintilla/src/ScintillaBase.h:
+	* scintilla/src/Style.cxx:
+	* scintilla/src/Style.h:
+	* scintilla/src/StyleContext.cxx:
+	* scintilla/src/StyleContext.h:
+	* scintilla/src/UniConversion.cxx:
+	* scintilla/src/UniConversion.h:
+	* scintilla/src/ViewStyle.cxx:
+	* scintilla/src/ViewStyle.h:
+	* scintilla/src/WindowAccessor.cxx:
+	* scintilla/src/XPM.cxx:
+	* scintilla/src/XPM.h:
+	* scintilla/vcbuild/SciLexer.dsp:
+	* scintilla/version.txt:
+	* scintilla/win32/ExternalLexer.cxx:
+	* scintilla/win32/ExternalLexer.h:
+	* scintilla/win32/PlatWin.cxx:
+	* scintilla/win32/PlatformRes.h:
+	* scintilla/win32/SciTE.properties:
+	* scintilla/win32/ScintRes.rc:
+	* scintilla/win32/Scintilla.def:
+	* scintilla/win32/ScintillaWin.cxx:
+	* scintilla/win32/deps.mak:
+	* scintilla/win32/makefile:
+	* scintilla/win32/scintilla.mak:
+	* scintilla/win32/scintilla_vc6.mak:
+	* scintilla/zipsrc.bat:
+
+2003-03-18  Sven Herzberg,,,  <herzi@gnome-de.org>
+
+	reviewed by: <delete if not using a buddy>
+
+	* scintilla/License.txt:
+	* scintilla/README:
+	* scintilla/delbin.bat:
+	* scintilla/delcvs.bat:
+	* scintilla/doc/Design.html:
+	* scintilla/doc/Lexer.txt:
+	* scintilla/doc/SciCoding.html:
+	* scintilla/doc/ScintillaDoc.html:
+	* scintilla/doc/ScintillaDownload.html:
+	* scintilla/doc/ScintillaHistory.html:
+	* scintilla/doc/ScintillaRelated.html:
+	* scintilla/doc/ScintillaToDo.html:
+	* scintilla/doc/ScintillaUsage.html:
+	* scintilla/doc/Steps.html:
+	* scintilla/doc/index.html:
+	* scintilla/gtk/PlatGTK.cxx:
+	* scintilla/gtk/ScintillaGTK.cxx:
+	* scintilla/gtk/makefile:
+	* scintilla/gtk/scintilla.mak:
+	* scintilla/include/Accessor.h:
+	* scintilla/include/Face.py:
+	* scintilla/include/HFacer.py:
+	* scintilla/include/KeyWords.h:
+	* scintilla/include/Platform.h:
+	* scintilla/include/PropSet.h:
+	* scintilla/include/SString.h:
+	* scintilla/include/SciLexer.h:
+	* scintilla/include/Scintilla.h:
+	* scintilla/include/Scintilla.iface:
+	* scintilla/include/ScintillaWidget.h:
+	* scintilla/include/WindowAccessor.h:
+	* scintilla/readme:
+	* scintilla/src/AutoComplete.cxx:
+	* scintilla/src/AutoComplete.h:
+	* scintilla/src/CallTip.cxx:
+	* scintilla/src/CallTip.h:
+	* scintilla/src/CellBuffer.cxx:
+	* scintilla/src/CellBuffer.h:
+	* scintilla/src/ContractionState.cxx:
+	* scintilla/src/ContractionState.h:
+	* scintilla/src/Document.cxx:
+	* scintilla/src/Document.h:
+	* scintilla/src/DocumentAccessor.cxx:
+	* scintilla/src/DocumentAccessor.h:
+	* scintilla/src/Editor.cxx:
+	* scintilla/src/Editor.h:
+	* scintilla/src/Indicator.cxx:
+	* scintilla/src/Indicator.h:
+	* scintilla/src/KeyMap.cxx:
+	* scintilla/src/KeyMap.h:
+	* scintilla/src/KeyWords.cxx:
+	* scintilla/src/LexAVE.cxx:
+	* scintilla/src/LexAda.cxx:
+	* scintilla/src/LexAsm.cxx:
+	* scintilla/src/LexBaan.cxx:
+	* scintilla/src/LexBullant.cxx:
+	* scintilla/src/LexCPP.cxx:
+	* scintilla/src/LexCSS.cxx:
+	* scintilla/src/LexConf.cxx:
+	* scintilla/src/LexCrontab.cxx:
+	* scintilla/src/LexEiffel.cxx:
+	* scintilla/src/LexFortran.cxx:
+	* scintilla/src/LexGen.py:
+	* scintilla/src/LexHTML.cxx:
+	* scintilla/src/LexLisp.cxx:
+	* scintilla/src/LexLua.cxx:
+	* scintilla/src/LexMatlab.cxx:
+	* scintilla/src/LexOthers.cxx:
+	* scintilla/src/LexPOV.cxx:
+	* scintilla/src/LexPascal.cxx:
+	* scintilla/src/LexPerl.cxx:
+	* scintilla/src/LexPython.cxx:
+	* scintilla/src/LexRuby.cxx:
+	* scintilla/src/LexSQL.cxx:
+	* scintilla/src/LexVB.cxx:
+	* scintilla/src/LineMarker.cxx:
+	* scintilla/src/LineMarker.h:
+	* scintilla/src/PropSet.cxx:
+	* scintilla/src/RESearch.cxx:
+	* scintilla/src/RESearch.h:
+	* scintilla/src/SVector.h:
+	* scintilla/src/SciTE.properties:
+	* scintilla/src/ScintillaBase.cxx:
+	* scintilla/src/ScintillaBase.h:
+	* scintilla/src/Style.cxx:
+	* scintilla/src/Style.h:
+	* scintilla/src/StyleContext.cxx:
+	* scintilla/src/StyleContext.h:
+	* scintilla/src/UniConversion.cxx:
+	* scintilla/src/UniConversion.h:
+	* scintilla/src/ViewStyle.cxx:
+	* scintilla/src/ViewStyle.h:
+	* scintilla/src/WindowAccessor.cxx:
+	* scintilla/src/XPM.cxx:
+	* scintilla/src/XPM.h:
+	* scintilla/vcbuild/SciLexer.dsp:
+	* scintilla/version.txt:
+	* scintilla/win32/ExternalLexer.cxx:
+	* scintilla/win32/ExternalLexer.h:
+	* scintilla/win32/PlatWin.cxx:
+	* scintilla/win32/PlatformRes.h:
+	* scintilla/win32/SciTE.properties:
+	* scintilla/win32/ScintRes.rc:
+	* scintilla/win32/Scintilla.def:
+	* scintilla/win32/ScintillaWin.cxx:
+	* scintilla/win32/deps.mak:
+	* scintilla/win32/makefile:
+	* scintilla/win32/scintilla.mak:
+	* scintilla/win32/scintilla_vc6.mak:
+	* scintilla/zipsrc.bat:
+
+2003-03-18  Sven Herzberg  <herzi@gnome-de.org>
+
+	* scintilla/src/XPM.cxx: file was in a tarball but not in CVS (fixes
+	build problem)
+	* scintilla/src/XPM.h: file was in a tarball but not in CVS (fixes
+	build problem)
+
+2003-03-18  Sven Herzberg  <herzi@gnome-de.org>
+
+	* GtkScintilla-2.0.pc: removed (we've got the .pc.in template now)
+	* Makefile: removed (we've got Makefile.am now)
+	* Makefile.am: automake makefile template
+	* autogen.sh: script to autogenerate configure
+	* configure.in: autoconf configure template
+	* scintilla/Makefile.am: automake makefile template
+
+2003-03-18  Sven Herzberg  <herzi@gnome-de.org>
+
+	* scigen.py: removed for scigen.py.in
+	* scigen.py.in: template for scigen.py (created by configure)
+	configure automatically sets the correct interpreter now
+
+2003-03-18  Sven Herzberg  <herzi@gnome-de.org>
+
+	* AUTHORS: Added authors file (needed by automake)
+	* ChangeLog: Added Changelog (needed by automake and very useful)
+	* gtkscintilla-2.0.pc.in: made a .pc.in file
+	* NEWS: Added news file (needed by automake)
+

@@ -1,0 +1,20 @@
+0=ASP.Null.Default
+1=ASP.ASP
+2=ASP.ASPAt
+{1}<%@{2}language=javas{1}%>{0}
+{1}<% 
+#include 
+function x() {
+}
+%>{0}
+{1}<%@{2}language=vbscript{1}%>{0}
+{1}<% 
+sub x 'comment 
+%>{0}
+<head>
+<script language="vbscript">
+function changeMagnification(n) {
+	alert(":" + document.b.getMagnification());
+	document.a.setMagnification(document.a.getMagnification() + n);
+}
+</script>

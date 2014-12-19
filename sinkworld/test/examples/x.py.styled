@@ -1,0 +1,25 @@
+0=Python.Default
+1=Python.CommentLine
+2=Python.CommentBlock
+3=Python.Number
+4=Python.Quoted
+5=Python.DoubleQuoted
+6=Python.Triple
+7=Python.TripleDouble
+8=Python.StringEOL
+9=Python.Operator
+10=Python.ClassName
+11=Python.DefName
+12=Python.Identifier
+13=Python.KeyWord
+{1}# Convert all punctuation characters except '_', '*', and '.' into spaces.{0}
+{13}def{0} {11}depunctuate{9}({12}s{9}):{0}
+	{6}'''A docstring'''{0}
+	{7}"""Docstring 2"""{0}
+	{12}d{0} {9}={0} {5}""{0}
+	{13}for{0} {12}ch{0} {13}in{0} {12}s{9}:{0}
+		{13}if{0} {12}ch{0} {13}in{0} {4}'abcde'{9}:{0}
+			{12}d{0} {9}={0} {12}d{0} {9}+{0} {12}ch{0}
+		{13}else{9}:{0}
+			{12}d{0} {9}={0} {12}d{0} {9}+{0} {5}" "{0}
+	{13}return{0} {12}d{0}

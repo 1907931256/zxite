@@ -1,0 +1,150 @@
+# Basic settings and modes not yet moed into individual files
+# names are implicitly scoped by the file as starting with mode.base
+# should modes be separated fromoptions by a different delimiter
+# mode.base.cxx!style.comment or mode.base.cxx.style.comment
+
+
+filter=All Files|*
+
+selection.style:back=#FFF2E7,bold=~
+selection.style.no.focus:back=#F0F0F0
+
+
+# No real mode for settings files yet
+settings:	filter=Settings Files (.mode;.options)|*.options;*.mode
+
+python:
+	super=mode.base
+	name=Python
+	extensions=py
+	filter=Python (.py;.pyw)|*.py;*.pyw
+	lexer=Python
+	keywords.1=and assert break class continue def del elif \
+		else except exec finally for from global if import in is lambda \
+		None not or pass print raise return try while yield
+	style:
+		CommentLine:fore=#008000,font=Comic Sans MS,italics=1
+		Operator:fore=#000000
+		Preprocessor:fore=#808000
+		Identifier:fore=#000000
+		Number:fore=#008080
+		String:fore=#800080
+		KeyWord:bold=1,fore=~
+
+# Multi level substitutions by processing $( from end:
+chooser.exts=$($(super).extensions)
+
+withextras:
+	modetree=mode.base(mode.preproc,mode.doxygen),mode.url
+	url.affects=mode.base.comment **.comment.doc
+
+basic:
+	extensions=vb vbs bas frm
+	filter=Basic (.vb;.vbs;.bas)|*.vb;*.vbs;*.bas
+	lexer=VB
+	identifiers=basic vbscript
+	keywords.1=and begin case call continue do each else elseif end \
+		erase error event exit false for function get gosub goto if \
+		implement in load loop lset me mid new next not nothing \
+		on or property raiseevent rem resume return rset select \
+		set stop sub then to true unload until wend while with \
+		withevents attribute alias as boolean byref byte byval \
+		const compare currency date declare dim double enum \
+		explicit friend global integer let lib long module object \
+		option optional preserve private property public redim \
+		single static string type variant
+	style.Date:fore=#008080
+
+# Brace counting mode
+# mode.base.bracecount
+bracecount:
+	name=Brace Counter
+	extensions=brace
+	lexer=BraceCount
+	style:
+		#Default:
+		L1:back=#C0FFFF
+		L2:back=#BCE3FB
+		L3:back=#C7C7F6
+		L4:back=#F2B3F2
+		L5:back=#EDBEBE
+		L6:back=#E9E9AA
+		L7:back=#B5E4B5
+		L8:back=#A0DFDF
+		L9:back=#9CC3DB
+		L10:back=#A7A7D6
+		L11:back=#D293D2
+		L12:back=#CD9E9E
+		L13:back=#C9C98A
+		L14:back=#95C495
+		L15:back=#80BFBF
+		L16:back=#7CA3BB
+		L17:back=#8787B6
+		L18:back=#B273B2
+		Negative:back=#FF0000
+
+# URL highlighting mode
+# mode.base.url
+url:
+	name=URL Highlighter
+	extensions=web
+	lexer=URL
+	style:
+		#Default:
+		URL:decoration=#800080 UnderLine
+		NotURL:xdecoration=#FF00FF UnderLine
+
+# Spell checking mode
+# mode.base.spell
+spell:
+	name=Spell Checker
+	extensions=spell
+	lexer=Spelling
+	keywords.1=html tidy content courier href scintilla for are that in to is \
+		as and an of the or it there with name may more on new \
+		be from much more text where by use org http each core \
+		this will into not here can set class one version run \
+		a abbr acronym address applet area b base basefont \
+		bdo big blockquote body br button caption center \
+		cite code col colgroup dd del dfn dir div dl dt em \
+		fieldset font form frame frameset h1 h2 h3 h4 h5 h6 \
+		head hr html i iframe img input ins isindex kbd label \
+		legend li link map menu meta noframes noscript \
+		object ol optgroup option p param pre q s samp \
+		script select small span strike strong style sub sup \
+		table tbody td textarea tfoot th thead title tr tt u ul \
+		var xml xmlns
+	style:
+		Default:back=#000000,fore=#FFFF80
+		Word:back=#000000,fore=#FFFFFF
+		Mistake:
+			back=#000000
+			fore=#D0FFFF
+			backdecoration:type=RoundedBox,fore=#FFFFFF,alpha=96,alphaoutline=191
+
+# Errors highlighting mode
+# mode.base.errors
+errors:
+	name=Error Parser
+	extensions=err
+	lexer=Errors
+	style:
+		Default:back=#FFFFFF
+		Command:fore=#0000FF
+		Python:back=#FFFFD7,fore=#FF0000
+		Borland:back=#FFFFD7,fore=#8060FF
+		GCC:back=#FFFFD7,fore=#800080
+		Microsoft:back=#FFFFD7,fore=#00FFFF
+		DiffName:fore=#800000
+		DiffAdd:fore=#000080
+		DiffRemove:fore=#008080
+
+# Vowel highlighting mode
+# mode.base.vowels
+vowels:
+	name=Vowels
+	extensions=vow
+	lexer=Vowels
+	style:
+		C:back=#FFFFFF
+		V:back=#C0FFC0

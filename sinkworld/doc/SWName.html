@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="Date.Modified" content="20010515" />
+    <title>SinkWorld - where?</title>
+    <link rel="stylesheet" type="text/css" href="SW.css">
+</head>
+<body>
+<br />
+<h3>Where is SinkWorld?</h3>
+<p>
+SinkWorld is a land sunk beneath the level of the sea but not submerged.
+Waterfalls surrounding pour the sea into SinkWorld yet do not drown it.
+Strong currents draw passing ships towards SinkWorld and over the waterfalls.
+Not many escape. Some survive but they remain cut off from the events of the 
+outside world.
+</p>
+<img src="GreatSinkA.jpg" height="600" width="800" alt="Image of sunken land">
+<p>
+The concept behind the SinkWorld software development plan is
+to simplify the issues involved in working on Scintilla by developing pieces 
+of functionality in isolation, in a <strong>synch</strong>ronous 
+context, where there are no callbacks, threads or GUI interactions.
+This should make it easier to work on performance and testing by not needing 
+to consider the effects of the containing environment which is where much of the 
+complexity in UI components comes from. Once these pieces are well tested
+by a unit testing framework and efficient, they can be integrated into larger
+components that require more complex interactions.
+</p>
+<p>
+Some features require significant processing time so may be performed
+be a series of incremental steps rather than as indivisible actions if no
+sufficiently fast technique can be found. This may include such tasks as 
+lexical analysis of source code and line wrapping.
+This is an intermediate area between the completely isolated and the 
+completely integrated and may be worked on as part of SinkWorld.
+</p>
+<p>
+I like code to have evocative names and like to use metaphors when
+thinking through stuff even if they seem very separated from the problem
+domain. Often unexpected associations occur leading to new ideas.
+</p>
+<p>
+Sunken lands are a recurring theme in myth - Ys and Atlantis being
+well known examples. Often associated with the fall of a land because of the
+hubris of the inhabitants.
+</p>
+<p>
+Graphics Copyright 2001 Stephen Neal - 
+<a href="http://www.zip.com.au/~sneal/index.html">Virtually There</a>.
+Stephen is also responsible for initiating the fantasy story line. 
+</p>
+</body>
+</html>

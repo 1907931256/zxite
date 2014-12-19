@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="Date.Modified" content="20010515" />
+    <title>SinkWorld - Performance</title>
+    <link rel="stylesheet" type="text/css" href="SW.css">
+</head>
+<body>
+<img src="swtxt1.jpg" height="150" width="780" alt="SinkWorld banner image">
+<h3>Performance</h3>
+<p>
+Scintilla performs reasonably well now for a wide range of applications. 
+There are, however, some aspects that could be usefully sped up, such 
+as the highlighting of indentation guides as the caret moves next to nesting operators.
+Other features, such as dynamic word wrapping, have not been attempted 
+because they are seen as requiring much processing, thus slowing down 
+the editor significantly.
+</p>
+<p>
+Profiling of code commonly reveals that small pieces of code greatly limit the 
+performance of a whole component or application and that the particular pieces 
+of code limiting performance are often unexpected.
+</p>
+<p>
+Testing performance of code within a working application is often complex. 
+While the whole application should perform efficiently there are often so many 
+interacting elements that it is hard to isolate the code responsible for limiting 
+performance. GUI applications are especially hard to profile well as the underlying 
+graphics subsystems of modern GUIs are highly asynchronous, delaying the 
+processing of graphics instructions until some (often unexpected) call requires a 
+graphics state synchronisation. Turning on synchronous processing leads to even 
+more difficulties as performance slows down by a large factor and emphasizes 
+the cost of making calls rather than the cost of the processing done by those calls.
+</p>
+<p>
+Benchmarks can be performed on isolated pieces of code, calling these pieces
+enough times to ensure accurate timings. GUI code can be repeated and then a final 
+synchronising call made and included in the timings to get a true idea of how 
+expensive that code is. To ensure that concentrating on the details doesn't lead 
+to unexpected performance problems with the whole editor, there should also be 
+some performance testing of whole applications.
+</p>
+<p>
+There has already been one positive outcome of performance testing of 
+isolated components within SinkWorld. The test split buffer implementation showed 
+that choosing poor parameters and using a linear growth strategy for growing the buffer size 
+led to very slow performance for large documents. 
+Changing to an exponential growth strategy improved speed greatly. 
+Scintilla was modified to use an exponential growth strategy with the result being that 
+loading a 30 Megabyte file now takes 25 seconds as against 1000 before which
+is a very worthwhile speed up.
+</p>
+<p>
+The unit testing frameworks are good starting points for performance tests. Often they 
+will report overall times for running the unit tests and this is a good check that performance is 
+not regressing. The duration of operations can also be made part of the unit tests. If an insertion 
+takes twice as long in a new version than previously then, in the absence 
+of justifications, that is a bug just as much as if the insertion overflowed an array.
+</p>
+<h3>Managed Execution Platforms</h3>
+<p>
+Porting Scintilla to the JVM and .NET results in a different set of performance issues 
+than the current unmanaged code. C++ includes mechanisms, such as inline methods,
+that make it possible to write very fast code. Even when there are several apparent 
+layers involved in accessing data, the compiler can often analyse the code and 
+determine that some of the layers can be eliminated in the compiled code. 
+Managed code environments can 
+sometimes discover this information at run time, but as there is less time allowed to
+optimise the code with a just-in-time compiler, these optimisations may not be 
+performed or may be performed poorly.
+</p>
+<p>
+Managed execution involves more overhead than unmanaged execution as array 
+accesses are checked to ensure they are made within the bounds of the arrays and
+object accesses are checked for correct typing and for security. As a very rough 
+guide, on average, Java is often about one third of the speed of C++ in my experience.
+Individual tests may be much slower than this or much faster, sometimes even 
+exceeding the speed of C++. C# on .NET is only available in a beta form and so 
+its speed, which is currently slow on many operations, can not fairly be evaluated yet.
+Microsoft claims that the release version will be within 10% of C++ performance 
+although I am sceptical of this figure.
+</p>
+<p>
+As mentioned of the <a href="SWFlexibility.html">flexibility page</a>, 
+software can be built with a combination of a high level language for most code
+with a low level language used for performance critical code. When doing this it 
+is important to understand where the performance bottlenecks are so they can 
+be examined to see if they can be improved with a better algorithm or by recoding
+in a low level language.
+</p>
+</body>
+</html>

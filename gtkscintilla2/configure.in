@@ -1,0 +1,34 @@
+dnl
+dnl configure.in for libgtkscintilla-2.0
+dnl
+
+AC_INIT(scintilla)
+
+AM_INIT_AUTOMAKE(gtkscintilla-2.0,0.0.6)
+
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_INSTALL
+
+AM_PROG_LIBTOOL
+AM_PATH_PYTHON
+
+AC_SUBST(PYTHON)
+
+PKG_CHECK_MODULES(GTKSCINTILLA,[
+	gtk+-2.0
+	])
+
+AC_SUBST(GTKSCINTILLA_CFLAGS)
+AC_SUBST(GTKSCINTILLA_LIBS)
+
+AC_OUTPUT([
+Makefile
+gtkscintilla-2.0.pc
+data/Makefile
+data/scigen.py
+debian/Makefile
+gtkscintilla-2.0/Makefile
+scintilla/Makefile
+scintilla-lib/Makefile
+])

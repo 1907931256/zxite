@@ -1,0 +1,359 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="Date.Modified" content="20050530" />
+    <title>Pentacle</title>
+    <link rel="stylesheet" type="text/css" href="SW.css">
+</head>
+<body>
+<div style="background-color:#333333">
+<img src="swtxt1.jpg" height="150" width="780" alt="SinkWorld banner image">
+</div>
+<h2 style="background-color:#333333;color:#B0D7FF;margin:0;padding:5px">Pentacle and Tentacle - demonstration SinkWorld applications</h2>
+<h3 class="release">Release 6&nbsp;&nbsp;&nbsp;&nbsp;30/November/2005</h3>
+<h3>More refinements</h3>
+<p>Biggest change is that restyling is optimized through adding some complexity to
+the styled area of a styling buffer. There may now be a hole that is unstyled within
+the styled area. When a modification is made to the text within the styled area,
+a hole is removed from the styling of that line. An attempt is then made to restyle just
+the hole. If the restyling did not produce any changes that affect styling after the hole
+then the whole of the styled area is again considered styled and only the hole range is
+redrawn. This checks not only the styling buffers but ancillary history objects that lexers
+use to keep track of other state such as the current scripting language in a web page or
+the stack of here documents in Perl.</p>
+<p>
+Decorations can be translucent on all platforms. A RoundedBox decoration is implemented
+with alpha and alphaoutline attributes. If only alpha is set then the whole rounded box is drawn
+and filled with this alpha (0=transparent, 255=opaque). If alphaoutline is set then the box is
+outlined with this degree of translucency. The graphics code supports drawing arbitrary
+polygons with translucency. Alpha drawing may be slower than opaque drawing and this depends
+on the platform.
+</p>
+<p>
+Some other text widgets can show the selection range by drawing lines around it. This is
+now implemented in SinkWorld as the 'box' facet that takes a color value. It can be used
+for any styling that may spread over multiple lines and is drawn with rounded corners.
+As the implementation depends on information from multiple lines it didn't fit in with
+some aspects of the drawing code so there can only be one box facet in use at a time.
+This doesn't yet work well with horizontal scrolling.
+</p>
+<p>
+<img src="Boxes.png" alt="Alpha drawing"></p>
+<p>
+A generic prototype registry acts as a source of lexers, folders and decorations that
+can be retrieved by name. The bin/RegistryGen.py script reads source files, choosing
+class names that fit naming patterns and generates code that registers all classes.
+This makes it easy to add a new lexer, folder or decoration, by just adding the
+implementation files and running the script.
+</p>
+<p>
+The caret now blinks. Folds can be expanded and contracted by clicking on fold
+markers in the margin. Text is now aligned on its baseline so doesn't go up and down
+when different sizes used.
+</p>
+<p>
+Options files may now contain inline structured values using '{' and '}' so there
+is less need for multiple line values. The '\' character can be used to quote the next character.
+The first style in a set (often called 'Default') is used for drawing unstyled regions of the
+window including line ends and any extra vertical space after the end of the file. This is mostly
+used to set a background color for the whole window.
+</p>
+<p>
+Python wrappers are more consistent and simpler. The C++ Python wrappers
+ensure correct GIL usage. Lexers written in Python work. IronPython improved
+so workarounds removed.
+</p>
+<h3>Download</h3>
+<h4>Source</h4>
+<ul>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/sinkworld6.zip?download">Source code for all platforms</a></li>
+</ul>
+<h4>Example applications</h4>
+<p>These include the compiled executables or libraries and the settings files.
+The settings files are user.options and *.mode and these
+should be copied into the user's home directory (~ on Linux and %USERPROFILE%
+on Windows) before running the application.</p>
+<h5>Pentacle: Example applications written in Python</h5>
+<p>These require the appropriate Python platform (
+<a href="http://www.python.org/2.4.1/">Python</a>,
+<a href="http://www.jython.org/download.html">Jython</a>, or
+<a href="http://www.gotdotnet.com/workspaces/workspace.aspx?id=ad7acff7-ab1e-4bcb-99c0-57ac5a3a9742">IronPython</a>) and its prerequisites
+to be installed and the Windows version also requires <a href="http://starship.python.net/crew/theller/ctypes/">ctypes</a> to be installed.</p>
+<ul>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/PentacleW6.zip?download">Windows with ctypes</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/PentacleJ6.zip?download">Jython</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/PentacleN6.zip?download">Iron Python</a></li>
+<li>GTK+ can be built from the source package.</li>
+</ul>
+<h5>Tentacle: Example applications written in C++/Java/C#</h5>
+<ul>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/TentacleG6.zip?download">GTK+</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/TentacleW6.zip?download">Windows</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/TentacleJ6.zip?download">Java</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/TentacleN6.zip?download">.NET</a></li></ul>
+<div style="background-color:#EBEBF3">
+<h3 class="release">Release 5&nbsp;&nbsp;&nbsp;&nbsp;30/May/2005</h3>
+<h3>Pentacle: Python versions of the Tentacle application</h3>
+<p>There are Python wrapper libraries for SinkWorld and example applications
+for each platform. Jython is used in the Java environment and IronPython on .NET
+and on each of these platforms Python interacts naturally with the Java / C# libraries.
+For CPython the libraries required explicit wrapping and this was done using Boost Python.</p>
+<p>The implementations now read much more of their functionality, such as file filters for the
+open dialog from the modes files. There is a Mode menu in most of the applications which
+allow choosing a particular mode rather than the one associated with a file's extension.
+</p>
+<p>There is information on <a href="http://www.scintilla.org/ReadMe.html">building</a>
+for each platform.
+</p>
+</div><div style="background-color:#E7E7EF"><h3 class="release">Release 3&nbsp;&nbsp;&nbsp;&nbsp;19/March/2005</h3>
+<h3>Modes</h3>
+<p>Modes are the most significant addition in this release. Previous releases
+contained some ad-hoc explicit code for combining lexers and this release
+generalizes this so that the configuration can be manipulated at a high
+level and be defined in options files.</p>
+<p>When a file is loaded, its extension is used to find the main mode that
+Tentacle should use for that file. This may be extended to also allow detection
+of marker text and user choice of mode. The main mode is then used as the
+key for selecting properties and submodes.</p>
+<h4>Submodes</h4>
+<p>A complex language like HTML may allow embedded segments in other
+languages like JavaScript or CSS (Cascading Style Sheets). These embedded
+segments should be styled according to the rules of their language rather than
+that of the including file. It is also possible to modify the settings of a
+mode when it is used as a submode by declaring an extra mode for that embedding.</p>
+<p>Each embedded language defines a mode that is incorporated into the
+HTML mode as a submode. Submodes may fulfil specific roles such as the
+html role within ASP which is treated specially but others are generic such
+as the set of client side scripting languages in HTML.</p>
+<h4>Layers</h4>
+<p>Layers are modes that are orthogonal to the main mode such as spelling
+checkers and code validators and may depend on the styling information generated
+by the main mode.
+</p>
+<h3><a href="OptionsModes.html">Options and Mode files</a></h3>
+<p>
+Tentacle behaviour can be defined through text configuration files rather than
+being hard coded as in previous releases. The file format tries to fix some of the
+weaknesses in SciTE's properties files.</p>
+<h3>Reflection</h3>
+<p>SinkWorld lexers provide more information to callers than do Scintilla lexers.
+This include sthe number of lexical states that they produce and the names of these
+states. This information may be extended in the future to provide some information
+about how to treat such ststes such as saying that Comment and CommentDoc are
+both comments. This could be used to determine that a spelling checker should examine
+text in these states but not in states that are operators.</p>
+<h3>Project structure</h3>
+<p>The project directories have been restructured for this release.</p>
+<table style="margin-left:8mm">
+<tr><td>sinkworld</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cxx</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tentacle</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cxx</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;csharp</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;java</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;csharp</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;java</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bin</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;doc</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;html</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test</td></tr>
+<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;examples</td></tr>
+</table>
+<p>Source code for generic data structures and lexers are in cxx. </p>
+<p>Source code for the Tentacle application, interfacing to GUI libraries
+(Win32 and GTK+) and data structures related to GUIs are in tentacle/cxx.
+The application is built on Windows by loading the Tentacle solution file into
+Visual Studio .NET and performing the Build Solution command.
+On GTK+, make is run.</p>
+<p>The Translate.py script in bin expands templated files in cxx and translates
+all the source code into C# and Java to produce the contents of the csharp
+and java directories. It also translates most of the data structure source code
+in tentacle/cxx into C# and Java placing these files into tentacle/csharp and
+tentacle/java.</p>
+<p>tentacle/csharp contains application code for C# and classes for interfacing
+to Windows Forms. The application, TentacleN.exe is built by running make.</p>
+<p>tentacle/java contains application code for Java and classes for interfacing
+to Swing. The application, tentacle.jar is built by running make and executed by
+java -jar tentacle.jar.</p>
+<p>The tentacle directory contains configuration files for the tentacle applications. These should
+be placed in the user's home directory before running any of the application.</p>
+<p>Scripts used in building are in bin and documentation in doc.
+API documentation is is doc/html and the index.html file is the starting point.</p>
+<p>Unit tests are in test and example files used in unit tests in test/examples.</p>
+<h3>Download</h3>
+<p>
+Tentacle is implemented for 4 platforms and is available in archives for these executable forms:
+<ul>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/TentacleW3.zip?download">Windows executable</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/TentacleG3.zip?download">i386 Linux/GTK+ executable built on Fedora Core 3</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/TentacleJ3.zip?download">Java jar file</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/TentacleN3.zip?download">.NET based Windows executable</a></li>
+</ul>
+</p>
+<p>
+Each archive also contains 4 configuration files (user.options, base.mode, cxx.mode, html.mode)
+that should be copied into the user's home directory.
+</p>
+<p>
+Source code can be retrieved from the Scintilla CVS under sinkworld/tentacle with tag rel-3-2 and as a
+<a href="http://prdownloads.sourceforge.net/scintilla/sinkworld.zip?download">zip file</a>.
+The zip file contains the Java and C# files translated from C++ so can be used by people that
+don't want to run the Python Translate.py script. CVS only contains the initial files so, to use
+source from CVS, Translate.py must be run even when only building C++.
+</p>
+<h3>Unit tests</h3>
+<p>A large number of unit tests have been added in test/SimpleTest.cxx. These cover all
+the implemented public data structure classes and lexers. The C# and Java unit tests have
+not been maintained and may be dropped unless they can be automatically generated from
+C++.</p>
+<p>The lexer unit tests use and generate .styled text files which show how an example
+file was styled with "{&lt;number&gt;}" elements showing where each style starts.
+This should make it easier to determine what impact a change has made and diminish
+the chance that a change has caused an undiscovered regression.
+The .styled files start with a key listing all the lexical classes. </p>
+<table class="file">
+<thead><tr><td>x.cxx.styled</td></tr></thead>
+<tr><td><span class="S4">0</span>=CPP.Default</td></tr>
+<tr><td><span class="S4">1</span>=CPP.Comment</td></tr>
+<thead><tr><td style="line-height:60%">&middot;&middot;&middot;</td></tr></thead>
+<tr><td><span class="S4">17</span>=CPP.KeyWord</td></tr>
+<tr><td><span class="S10">{</span><span class="S4">2</span><span class="S10">}</span><span class="S2">// A demonstration program{0}</span></td></tr>
+<tr><td><span class="S10">{</span><span class="S4">17</span><span class="S10">}</span><span class="S5">int</span><span class="S10">{</span><span class="S4">0</span><span class="S10">}</span><span class="S0"> </span><span class="S10">{</span><span class="S4">16</span><span class="S10">}</span>main<span class="S10">{</span><span class="S4">9</span><span class="S10">}(){</span><span class="S4">0</span><span class="S10">}</span><span class="S0"> </span><span class="S10">{</span><span class="S4">9</span><span class="S10">}{{</span><span class="S4">0</span><span class="S10">}</span></td></tr>
+<tr><td><span class="S0">&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="S10">{</span><span class="S4">16</span><span class="S10">}</span>printf<span class="S10">{</span><span class="S4">9</span><span class="S10">}({</span><span class="S4">5</span><span class="S10">}</span><span class="S6">"hello world %d\n"</span><span class="S10">{</span><span class="S4">9</span><span class="S10">},{</span><span class="S4">0</span><span class="S10">}</span><span class="S0"> </span><span class="S10">{</span><span class="S4">4</span><span class="S10">}</span><span class="S4">9</span><span class="S10">{</span><span class="S4">9</span><span class="S10">});{</span><span class="S4">0</span><span class="S10">}</span></td></tr>
+<tr><td><span class="S10">{</span><span class="S4">9</span><span class="S10">}}{</span><span class="S4">0</span><span class="S10">}</span><br /></td></tr>
+</table>
+<p>Where a modification has
+changed the set of lexical classes, the ExpandStates.py script can convert .styled files so
+that the style change elements are shown with style names rather than numbers making
+it easier to run diff over them.</p>
+<table class="file">
+<thead><tr><td>x.cxx.styled</td></tr></thead>
+<thead><tr><td style="line-height:60%">&middot;&middot;&middot;</td></tr></thead>
+<tr><td><span class="S10">{</span>CommentLine<span class="S10">}</span><span class="S2">// A demonstration program{Default}</span></td></tr>
+<tr><td><span class="S10">{</span>KeyWord<span class="S10">}</span><span class="S5">int</span><span class="S10">{</span>Default<span class="S10">}</span><span class="S0"> </span><span class="S10">{</span>Identifier<span class="S10">}</span>main<span class="S10">{</span>Operator<span class="S10">}(){</span>Default<span class="S10">}</span><span class="S0"> </span><span class="S10">{</span>Operator<span class="S10">}{{</span>Default<span class="S10">}</span></td></tr>
+<tr><td><span class="S0">&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="S10">{</span>Identifier<span class="S10">}</span>printf<span class="S10">{</span>Operator<span class="S10">}({</span>Quoted<span class="S10">}</span><span class="S6">"hello world %d\n"</span><span class="S10">{</span>Operator<span class="S10">},{</span>Default<span class="S10">}</span><span class="S0"> </span><span class="S10">{</span>Number<span class="S10">}</span><span class="S4">9</span><span class="S10">{</span>Operator<span class="S10">});{</span>Default<span class="S10">}</span></td></tr>
+<tr><td><span class="S10">{</span>Operator<span class="S10">}}{</span>Default<span class="S10">}</span></td></tr>
+</table>
+<h3>Regressions</h3>
+<p>The new generic modes code is not yet able to provide some of the features
+of previous releases. Folding does not currently work. The brace count feature considers
+all brace characters rather than only those that are in the operator style so will get
+confused by a string constant like "(".</p><br /></div><div style="background-color:#DADAE3"><h3 class="release">Release 2&nbsp;&nbsp;&nbsp;&nbsp;20/July/2004</h3>
+<p>
+These are demonstration GUI front ends for the current code base.</p>
+<p>Below is the GTK+ 2.4 version:</p>
+<p>
+<img src="TentacleG.png" alt="Tentacle for GTK+"></p>
+<p>
+Tentacle is implemented for 4 platforms and is available in these executable forms:
+<ul>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/Tentacle2.exe?download">Windows executable</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/tentacle2">i386 Linux/GTK+ executable built on Fedora Core 2</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/tentacle2.jar?download">Java jar file</a></li>
+<li><a href="http://prdownloads.sourceforge.net/scintilla/TentacleN2.exe?download">.NET based Windows executable</a></li>
+</ul>
+</p>
+<p>
+It is also available in source form from the Scintilla CVS under sinkworld/tentacle and as a
+<a href="http://prdownloads.sourceforge.net/scintilla/tentacle2.zip?download">zip file</a>.
+</p>
+<p>
+The applications allow command line arguments as<br />
+<code>tentacle [path]</code><br />
+or for Java<br />
+<code>java -jar tentacle.jar [path]</code>
+</p>
+<p>
+Release 2 includes a line number margin, line wrapping, and folding.
+Folding depends on a lexer that measures the nesting level of braces
+and this lexer can be displayed by choosing Options | Brace Level.
+</p>
+<p>
+Below is the Windows C# version with line wrapping, brace folding and
+brace level color coding.
+</p>
+<p>
+<img src="TentacleW.png" alt="Tentacle for Windows">
+</p>
+<h3>Source code.</h3>
+<h4>Style merging.</h4>
+<p>
+A major feature in Tentacle is style merging. SinkWorld allows multiple styling
+buffers to be attached to a document. For a HTML document, there may be
+a styling buffer for the basic HTML features like tags, attributes, text and
+embedded scripts; an URL recogniser; and a spell checker. This style information
+is generated automatically from the document text by lexer classes. The
+application may also wish to display dynamic information over the text, such as
+the selection; brace matches; search matches; and hotspots and can use styling
+buffers to hold these elements.
+</p>
+<p>
+Tentacle's StyleSetCollection class describes the relationship between the document
+text, document styling buffers and application styling buffers and the resulting display.
+For example, content text may be black and tags in blue bold text, with URLs
+underlined, spelling mistakes struck out, the selection in italics with a light blue background
+and identifiers appearing as buttons.
+</p>
+<p>
+Tentacle uses a layered drawing model with 5 layers.
+<ul>
+<li>Background color</li>
+<li>Background decoration</li>
+<li>Text</li>
+<li>Foreground decoration</li>
+<li>Caret</li>
+</ul>
+</p>
+<p>
+The decoration layers allow features such as underlines, boxes, buttons and similar
+to be drawn either underneath or on top of the text.
+Decoration drawing is performed by classes that implement the IDecoration interface
+so new decorations can be added. Other layers are drawn by implementations of
+the IPaintPhase interface.
+</p>
+<p>
+Window painting is performed layer by layer with all lines of the background color
+drawn before any text. This allows some degree of overlap between lines with
+decorations extending outside the bounds of their text. This is also better for modern
+antialiased drawing libraries where sub-pixel positioning is used. Tentacle should
+work well with floating point coordinate systems although it currently truncates
+positions to integral coordinates.
+</p>
+<h4>Code details.</h4>
+<p>
+The Tentacle code includes several source code files that are generally useful in
+implementing styling and caching data: ChangeFinder, PositionCache, StringAtom,
+StyleSet, TextPositions, and UniConversion are, like core SinkWorld written in a
+subset of C++ and automatically converted to Java and C#.
+</p>
+<p>
+Other code is written for the particular language and platform. Surface provides
+some abstraction of graphics capabilities and Tentacle implements the application
+and GUI windows.
+</p>
+<p>
+The generic code may be made part of core SinkWorld or made into a separate
+library. The platform-specific code is less likely to be maintained although segments
+that can be turned into generic components may become part of the core libraries.
+</p>
+<p>
+At this stage I have no plans to produce or maintain reusable GUI components
+based on this code.
+</p>
+<p>
+All the code can be reused according to the MIT license. I hope to make the
+core libraries available as public domain or as near as can be achieved.
+</p>
+<p>
+Building the various versions of Tentacle requires several tools depending on how
+much is being built. The CVS set of files requires running a Windows batch file and
+a Python based converter for the Java and C# versions but the zip file contains
+all the copied and generated files so should only require a Java or C# compiler.
+The C++ version requires Visual Studio .Net on Windows. On Linux it should
+build with standard compilers and tools.
+</p>
+</div>
+</body>
+</html>

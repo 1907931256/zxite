@@ -1,0 +1,10 @@
+0=Spelling.Default
+1=Spelling.Word
+2=Spelling.Mistake
+{2}Much{0} {1}of{0} {1}the{0} {2}core{0} {2}requirements{0} {1}of{0} {2}Scintilla{0}, 
+{2}including{0} {2}text{0} {1}and{0} {2}style{0} {2}buffers{0}, {2}line{0} 
+{2}positions{0}, {2}undo{0}, {1}and{0} {2}lexing{0} {1}are{0} {2}working{0}. {2}There{0} 
+{1}is{0} {2}one{0} {2}example{0} {2}lexer{0} {1}for{0} {2}C{0}++ {2}although{0} {2}it{0} 
+{2}doesn{0}'{2}t{0} {2}handle{0} {2}keywords{0} {2}yet{0}. {1}The{0} {2}style{0} 
+{2}buffer{0} {2}may{0} {2}contain{0} 0, 1, 2, {2}or{0} 4 {2}bytes{0} {1}for{0} 
+{2}each{0} {2}byte{0} {1}of{0} {2}text{0}.

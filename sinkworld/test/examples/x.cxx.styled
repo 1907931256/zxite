@@ -1,0 +1,22 @@
+0=CPP.Default
+1=CPP.Comment
+2=CPP.CommentLine
+3=CPP.CommentDoc
+4=CPP.Number
+5=CPP.Quoted
+6=CPP.Character
+7=CPP.UUID
+8=CPP.Preprocessor
+9=CPP.Operator
+10=CPP.StringEOL
+11=CPP.Verbatim
+12=CPP.RegEx
+13=CPP.CommentLineDoc
+14=CPP.CommentDocKeyWord
+15=CPP.CommentDocKeyWordError
+16=CPP.Identifier
+17=CPP.KeyWord
+{2}// A demonstration program{0}
+{17}int{0} {16}main{9}(){0} {9}{{0}
+	{16}printf{9}({5}"hello world %d\n"{9},{0} {4}9{9});{0}
+{9}}{0}

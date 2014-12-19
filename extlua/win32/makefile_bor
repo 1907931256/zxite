@@ -1,0 +1,164 @@
+# Make file for SciTE on Windows Borland C++ Builder version
+# Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
+# The License.txt file describes the conditions under which this software may be distributed.
+# This makefile is for using Borland C++ and Borland make. 
+# I test with Borland C++ Builder 3
+# The main makefile uses mingw32 gcc and may be more current than this file.
+
+CC = bcc32
+RC = brcc32
+LD = ilink32
+
+PROG	= ..\bin\SciTE.exe
+PROGSTATIC = ..\bin\Sc1.exe
+
+LDFLAGS = import32 cw32mt
+INCLUDEDIRS=-I../../scintilla/include -I../../scintilla/win32 -I../src -I../lua
+CXXFLAGS = -P -O1 -tWM -w -RT- -x- -v- -DLUA_SCRIPTING
+CCFLAGS = -O1 -tWM -w -RT- -x- -v- -DLUA_SCRIPTING
+
+.cxx.obj:
+	$(CC) $(INCLUDEDIRS) $(CXXFLAGS) -o$@ -c $*.cxx
+
+.rc.res:
+	$(RC) $(INCLUDEDIRS) $*.rc
+	
+DLLS=..\bin\Scintilla.dll ..\bin\SciLexer.dll
+
+ALL:	$(PROG) $(PROGSTATIC) $(DLLS) ..\bin\SciTEGlobal.properties
+
+clean:
+	del /q *.exe *.o *.obj *.dll *.res *.map
+
+..\bin\Scintilla.dll:	..\..\scintilla\bin\Scintilla.dll
+	copy ..\..\scintilla\bin\Scintilla.dll ..\bin
+
+..\bin\SciLexer.dll:	..\..\scintilla\bin\SciLexer.dll
+	copy ..\..\scintilla\bin\SciLexer.dll ..\bin
+	
+..\bin\SciTEGlobal.properties:	..\src\SciTEGlobal.properties
+	copy ..\src\SciTEGlobal.properties ..\bin
+
+OBJS = SciTEBase.obj SciTEWin.obj LuaExtension.obj \
+	..\..\scintilla\win32\WindowAccessor.obj \
+	..\..\scintilla\win32\PropSet.obj \
+	..\..\scintilla\win32\PlatWin.obj \
+	..\..\scintilla\win32\UniConversion.obj
+	
+LUAOBJS = lapi.obj lauxlib.obj lbuffer.obj lbuiltin.obj ldo.obj lfunc.obj \
+	lgc.obj llex.obj lmem.obj lobject.obj lparser.obj lstate.obj lstring.obj \
+	ltable.obj ltm.obj lundump.obj lvm.obj lzio.obj liolib.obj lstrlib.obj
+
+$(PROG): $(OBJS) $(LUAOBJS) SciTERes.res
+	$(LD) -Tpe -aa -Gn -x c0w32 $(OBJS) $(LUAOBJS), $(PROG), ,$(LDFLAGS), , SciTERes.res
+	
+OBJSSTATIC = Sc1.obj SciTEBase.obj LuaExtension.obj \
+	..\..\scintilla\win32\KeyWords.obj \
+	..\..\scintilla\win32\LexCPP.obj \
+	..\..\scintilla\win32\LexHTML.obj \
+	..\..\scintilla\win32\LexLua.obj \
+	..\..\scintilla\win32\LexOthers.obj \
+	..\..\scintilla\win32\LexPerl.obj \
+	..\..\scintilla\win32\LexPython.obj \
+	..\..\scintilla\win32\LexSQL.obj \
+	..\..\scintilla\win32\LexVB.obj \
+	..\..\scintilla\win32\WindowAccessor.obj \
+	..\..\scintilla\win32\DocumentAccessor.obj \
+	..\..\scintilla\win32\PropSet.obj \
+	..\..\scintilla\win32\ScintillaWinL.obj \
+	..\..\scintilla\win32\ScintillaBaseL.obj \
+	..\..\scintilla\win32\Editor.obj \
+	..\..\scintilla\win32\Document.obj \
+	..\..\scintilla\win32\CellBuffer.obj \
+	..\..\scintilla\win32\ContractionState.obj \
+	..\..\scintilla\win32\CallTip.obj \
+	..\..\scintilla\win32\PlatWin.obj \
+	..\..\scintilla\win32\UniConversion.obj \
+	..\..\scintilla\win32\KeyMap.obj \
+	..\..\scintilla\win32\Indicator.obj \
+	..\..\scintilla\win32\LineMarker.obj \
+	..\..\scintilla\win32\Style.obj \
+	..\..\scintilla\win32\ViewStyle.obj \
+	..\..\scintilla\win32\AutoComplete.obj
+
+SciTEBase.obj: ..\src\SciTEBase.cxx ..\src\SciTEBase.h ..\src\SciTE.h \
+	..\src\Extender.h \
+	..\..\scintilla\include\Platform.h \
+	..\..\scintilla\include\PropSet.h \
+	..\..\scintilla\include\Accessor.h \
+	..\..\scintilla\include\KeyWords.h \
+	..\..\scintilla\include\Scintilla.h \
+	..\..\scintilla\include\SciLexer.h
+	$(CC) $(INCLUDEDIRS) $(CXXFLAGS) /c ..\src\SciTEBase.cxx -fo$@
+	
+LuaExtension.obj: ..\src\LuaExtension.cxx ..\src\Extender.h ..\src\LuaExtension.h \
+	..\..\scintilla\include\Platform.h \
+	..\..\scintilla\include\PropSet.h \
+	..\..\scintilla\include\Accessor.h \
+	..\..\scintilla\include\Scintilla.h
+	$(CC) $(INCLUDEDIRS) $(CXXFLAGS) /c ..\src\LuaExtension.cxx -fo$@
+	
+SciTEWin.obj: SciTEWin.cxx ..\src\SciTEBase.h ..\src\SciTE.h \
+	..\src\Extender.h \
+	..\src\LuaExtension.h \
+	..\..\scintilla\include\Platform.h \
+	..\..\scintilla\include\PropSet.h \
+	..\..\scintilla\include\Accessor.h \
+	..\..\scintilla\include\KeyWords.h \
+	..\..\scintilla\include\Scintilla.h \
+	..\..\scintilla\include\SciLexer.h
+
+Sc1.obj: SciTEWin.cxx ..\src\SciTEBase.h ..\src\SciTE.h \
+	..\..\scintilla\include\Platform.h \
+	..\..\scintilla\include\PropSet.h \
+	..\..\scintilla\include\Accessor.h \
+	..\..\scintilla\include\KeyWords.h \
+	..\..\scintilla\include\Scintilla.h
+	$(CC) $(INCLUDEDIRS) $(CXXFLAGS) -o$@ /DSTATIC_BUILD /c SciTEWin.cxx
+
+lapi.obj: ..\lua\lapi.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lauxlib.obj: ..\lua\lauxlib.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lbuffer.obj: ..\lua\lbuffer.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lbuiltin.obj: ..\lua\lbuiltin.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+ldo.obj: ..\lua\ldo.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lfunc.obj: ..\lua\lfunc.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lgc.obj: ..\lua\lgc.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+llex.obj: ..\lua\llex.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lmem.obj: ..\lua\lmem.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lobject.obj: ..\lua\lobject.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lparser.obj: ..\lua\lparser.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lstate.obj: ..\lua\lstate.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lstring.obj: ..\lua\lstring.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+ltable.obj: ..\lua\ltable.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+ltm.obj: ..\lua\ltm.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lundump.obj: ..\lua\lundump.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lvm.obj: ..\lua\lvm.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lzio.obj: ..\lua\lzio.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+liolib.obj: ..\lua\liolib.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+lstrlib.obj: ..\lua\lstrlib.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c -fo$@
+	
+Sc1Res.res:	SciTERes.rc ..\src\SciTE.h ..\..\scintilla\win32\PlatformRes.h
+	$(RC) $(INCLUDEDIRS) -dSTATIC_BUILD -fo$@ SciTERes.rc
+	
+$(PROGSTATIC): $(OBJSSTATIC) $(LUAOBJS) Sc1Res.res
+	$(LD) -Tpe -aa -Gn -x c0w32 $(OBJSSTATIC) $(LUAOBJS), $(PROGSTATIC), ,$(LDFLAGS), , Sc1Res.res

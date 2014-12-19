@@ -1,0 +1,1 @@
+To build this directory from CVS, the whole sinkworld tree must be present. The the sinkworld C# files are copied down using CopyFromSW.bat. Then the makefile is run using mingw32-make to copy tentacle c++ source which is then converted to C# and combined with the TentacleN.java and Surface.cs files to make TentacleN.exe.

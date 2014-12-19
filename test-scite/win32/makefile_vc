@@ -1,0 +1,120 @@
+# Make file for Scintilla and SciTE, Windows Visual C++ version
+# Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
+# The License.txt file describes the conditions under which this software may be distributed.
+# This makefile is for using Visual C++ and nmake. 
+# The main makefile uses mingw32 gcc and may be more current than this file.
+
+CC = cl
+RC = rc
+LD = link
+
+O = obj
+
+PROG = SciTE.EXE
+PROGSTATIC = Sc1.EXE
+COMPONENT = Scintilla.DLL
+LEXCOMPONENT = SciLexer.dll
+
+ALL:	$(PROG) $(COMPONENT) $(PROGSTATIC) $(LEXCOMPONENT)
+
+clean:
+	del /q *.exe *.o *.obj *.dll *.res *.map
+
+LDFLAGS = /NODEFAULTLIB:LIBC KERNEL32.lib USER32.lib GDI32.lib COMDLG32.lib WINMM.lib COMCTL32.lib ADVAPI32.lib IMM32.lib SHELL32.LIB OLE32.LIB
+CXXFLAGS = /TP /MD /Ox 
+
+!IFDEF DEBUG
+CXXFLAGS=$(CXXFLAGS) /Zi 
+LDFLAGS=/DEBUG $(LDFLAGS)
+!ENDIF
+
+.cxx.$(O):
+	$(CC) $(CXXFLAGS) -c $*.cxx -o $@
+
+.rc.res:
+	$(RC) $*.rc
+	
+OBJS = SciTEWin.$(O) SciTEBase.$(O) KeyWords.$(O) Accessor.$(O) PropSet.$(O) PlatWin.$(O)
+
+OBJSSTATIC = Sc1.$(O) SciTEBase.$(O) KeyWords.$(O) Accessor.$(O) PropSet.$(O) \
+	ScintillaWinS.$(O) ScintillaBase.$(O) Editor.$(O) Document.$(O) CellBuffer.$(O) \
+	ContractionState.$(O) CallTip.$(O) PlatWin.$(O) KeyMap.$(O) Indicator.$(O) \
+	LineMarker.$(O) Style.$(O) ViewStyle.$(O) AutoComplete.$(O)
+
+OBJSCOMP	= ScintillaWin.$(O) ScintillaBase.$(O) Editor.$(O) Document.$(O) \
+	CellBuffer.$(O) ContractionState.$(O) CallTip.$(O) PlatWin.$(O) KeyMap.$(O) Indicator.$(O) \
+	LineMarker.$(O) Style.$(O) ViewStyle.$(O) AutoComplete.$(O)
+	
+LOBJS	= ScintillaWinL.$(O) ScintillaBaseL.$(O) Editor.$(O) Document.$(O) ContractionState.$(O) \
+	CellBuffer.$(O) CallTip.$(O) PlatWin.$(O) KeyMap.$(O) Indicator.$(O) \
+	LineMarker.$(O) Style.$(O) ViewStyle.$(O) AutoComplete.$(O) KeyWords.$(O) Accessor.$(O) PropSet.$(O)
+	
+Accessor.o: Accessor.cxx Platform.h PropSet.h Accessor.h Scintilla.h
+AutoComplete.o: AutoComplete.cxx Platform.h AutoComplete.h
+CallTip.o: CallTip.cxx Platform.h CallTip.h
+CellBuffer.o: CellBuffer.cxx Platform.h Scintilla.h CellBuffer.h
+ContractionState.o: ContractionState.cxx Platform.h ContractionState.h
+Document.o: Document.cxx Platform.h Scintilla.h CellBuffer.h \
+ Document.h
+Editor.o: Editor.cxx Platform.h Scintilla.h ContractionState.h \
+ CellBuffer.h KeyMap.h Indicator.h LineMarker.h Style.h ViewStyle.h \
+ Document.h Editor.h
+Indicator.o: Indicator.cxx Platform.h Scintilla.h Indicator.h
+KeyMap.o: KeyMap.cxx Platform.h Scintilla.h KeyMap.h
+KeyWords.o: KeyWords.cxx Platform.h PropSet.h Accessor.h KeyWords.h \
+ Scintilla.h SciLexer.h 
+LineMarker.o: LineMarker.cxx Platform.h Scintilla.h LineMarker.h
+PlatWin.o: PlatWin.cxx Platform.h PlatformRes.h
+PropSet.o: PropSet.cxx Platform.h PropSet.h
+ScintillaBase.o: ScintillaBase.cxx Platform.h Scintilla.h \
+ ContractionState.h CellBuffer.h CallTip.h KeyMap.h Indicator.h \
+ LineMarker.h Style.h ViewStyle.h AutoComplete.h Document.h Editor.h \
+ ScintillaBase.h
+ScintillaBaseL.o: ScintillaBase.cxx Platform.h Scintilla.h SciLexer.h \
+ ContractionState.h CellBuffer.h CallTip.h KeyMap.h Indicator.h \
+ LineMarker.h Style.h AutoComplete.h ViewStyle.h Document.h Editor.h \
+ ScintillaBase.h PropSet.h Accessor.h KeyWords.h
+ScintillaWin.o: ScintillaWin.cxx Platform.h Scintilla.h \
+ ContractionState.h CellBuffer.h CallTip.h KeyMap.h Indicator.h \
+ LineMarker.h Style.h AutoComplete.h ViewStyle.h Document.h Editor.h \
+ ScintillaBase.h
+ScintillaWinL.o: ScintillaWin.cxx Platform.h Scintilla.h SciLexer.h \
+ ContractionState.h CellBuffer.h CallTip.h KeyMap.h Indicator.h \
+ LineMarker.h Style.h AutoComplete.h ViewStyle.h Document.h Editor.h \
+ ScintillaBase.h PropSet.h Accessor.h KeyWords.h
+ScintillaWinS.o: ScintillaWin.cxx Platform.h Scintilla.h \
+ ContractionState.h CellBuffer.h CallTip.h KeyMap.h Indicator.h \
+ LineMarker.h Style.h AutoComplete.h ViewStyle.h Document.h Editor.h \
+ ScintillaBase.h
+SciTEBase.o: SciTEBase.cxx Platform.h SciTE.h PropSet.h Accessor.h \
+ KeyWords.h Scintilla.h SciLexer.h SciTEBase.h
+SciTEWin.o: SciTEWin.cxx Platform.h SciTE.h PropSet.h Accessor.h \
+ KeyWords.h Scintilla.h SciTEBase.h
+Style.o: Style.cxx Platform.h Style.h
+ViewStyle.o: ViewStyle.cxx Platform.h Scintilla.h Indicator.h \
+ LineMarker.h Style.h ViewStyle.h
+
+Sc1.$(O): SciTEWin.cxx SciTEBase.h Platform.h SciTE.h PropSet.h Accessor.h KeyWords.h Scintilla.h
+	$(CC) $(CXXFLAGS) /D STATIC_BUILD /c SciTEWin.cxx /FoSc1.$(O)
+	
+ScintillaBaseL.$(O):
+	$(CC) $(CXXFLAGS) /D SCI_LEXER /c ScintillaBase.cxx /Fo$*.$(O)
+	
+ScintillaWinS.$(O):
+	$(CC) $(CXXFLAGS) /D STATIC_BUILD /c ScintillaWin.cxx /Fo$*.$(O)
+	
+ScintillaWinL.$(O):
+	$(CC) $(CXXFLAGS) /D SCI_LEXER /c ScintillaWin.cxx /Fo$*.$(O)
+
+$(PROG): $(OBJS) SciTERes.res
+	$(LD) /OUT:$(PROG) $(OBJS) SciTERes.res $(LDFLAGS)
+	
+$(COMPONENT): $(OBJSCOMP) ScintRes.res
+	$(LD) /DLL /OUT:$(COMPONENT) $(OBJSCOMP) ScintRes.res $(LDFLAGS)
+
+$(PROGSTATIC): $(OBJSSTATIC) SciTERes.res
+	$(LD) /OUT:$(PROGSTATIC) $(OBJSSTATIC) SciTERes.res $(LDFLAGS)
+
+$(LEXCOMPONENT): $(LOBJS)
+	$(LD) /DLL /OUT:$(LEXCOMPONENT) $(LOBJS) ScintRes.res $(LDFLAGS)
+

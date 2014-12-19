@@ -1,0 +1,1 @@
+To build this directory from CVS, the whole sinkworld tree must be present. The the sinkworld Java files are copied down using CopyFromSW.bat. Then the makefile is run using mingw32-make to copy tentacle c++ source which is then converted to Java and combined with the TentacleJ.java and Surface.java files to make tentacle.jar.

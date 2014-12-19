@@ -1,0 +1,98 @@
+# parameter formats for scintilla OCX generation
+# %s denotes the name of the parameter
+
+return void[ole] = VT_EMPTY
+return void[odl] = void
+return void[cpp] = void
+
+return bool[ole] = VT_BOOL
+return bool[odl] = boolean
+return bool[cpp] = BOOL
+
+return position[ole] = VT_I4
+return position[odl] = long
+return position[cpp] = long
+
+return colour[ole] = VT_I4
+return colour[odl] = long
+return colour[cpp] = long
+
+return int[ole] = VT_I4
+return int[odl] = long
+return int[cpp] = long
+
+param void[ole] = VTS_NONE
+param void[odl] = void
+param void[cpp] = 
+
+param bool[ole] = VTS_BOOL
+param bool[odl] = boolean %s
+param bool[cpp] = BOOL %s
+
+param position[ole] = VTS_I4
+param position[odl] = long %s
+param position[cpp] = long %s
+
+param colour[ole] = VTS_I4
+param colour[odl] = long %s
+param colour[cpp] = long %s
+
+param int[ole] = VTS_I4
+param int[odl] = long %s
+param int[cpp] = long %s
+
+param string[ole] = VTS_BSTR
+param string[odl] = BSTR %s
+param string[cpp] = LPCTSTR %s
+
+param stringresult[ole] = VTS_PBSTR
+param stringresult[odl] = BSTR* %sStr
+param stringresult[cpp] = BSTR FAR* %sStr
+
+param cells[ole] = VTS_BSTR
+param cells[odl] = BSTR %s
+param cells[cpp] = LPCTSTR %s
+
+param formatrange[ole] = VTS_I4
+param formatrange[odl] = long %s
+param formatrange[cpp] = long %s
+
+param textrange[ole] = VTS_I4 VTS_I4 VTS_PBSTR
+param textrange[odl] = long %sMin,long %sMax,BSTR* %sStr
+param textrange[cpp] = long %sMin,long %sMax,BSTR FAR* %sStr
+
+param findtext[ole] = VTS_I4 VTS_I4 VTS_BSTR
+param findtext[odl] = long %sMin,long %sMax,BSTR %sStr
+param findtext[cpp] = long %sMin,long %sMax,LPCTSTR %sStr
+
+param findtextex[ole] = VTS_I4 VTS_I4 VTS_BSTR VTS_PI4 VTS_PI4
+param findtextex[odl] = long %sMin,long %sMax,BSTR %sStr,long* %sTxtMin,long* %sTxtMax
+param findtextex[cpp] = long %sMin,long %sMax,LPCTSTR %sStr,long* %sTxtMin,long* %sTxtMax
+
+param keymod[ole] = VTS_I2 VTS_I2
+param keymod[odl] = short %sKey,short %sMod
+param keymod[cpp] = short %sKey,short %sMod
+
+param countedstring[ole] = VTS_I4 VTS_PBSTR
+param countedstring[odl] = long %sLen,BSTR* %sStr
+param countedstring[cpp] = long %sLen,BSTR FAR* %sStr
+
+param charrange[ole] = VTS_I4 VTS_I4
+param charrange[odl] = long %sMin,long %sMax
+param charrange[cpp] = long %sMin,long %sMax
+
+param charrangeresult[ole] = VTS_PI4 VTS_PI4
+param charrangeresult[odl] = long* %sMin,long* %sMax
+param charrangeresult[cpp] = long* %sMin,long* %sMax
+
+param point[ole] = VTS_I4 VTS_I4
+param point[odl] = long %sX,long %sY
+param point[cpp] = long %sX,long %sY
+
+param pointresult[ole] = VTS_PI4 VTS_PI4
+param pointresult[odl] = long* %sX,long* %sY
+param pointresult[cpp] = long* %sX,long* %sY
+
+param rectangle[ole] = VTS_PI4 VTS_PI4 VTS_PI4 VTS_PI4
+param rectangle[odl] = long* %sLeft,long* %sTop,long* %sRight,long* %sBottom
+param rectangle[cpp] = long* %sLeft,long* %sTop,long* %sRight,long* %sBottom

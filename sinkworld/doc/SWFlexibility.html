@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="Date.Modified" content="20010515" />
+    <title>SinkWorld - Flexibility</title>
+    <link rel="stylesheet" type="text/css" href="SW.css">
+</head>
+<body>
+<img src="swtxt1.jpg" height="150" width="780" alt="SinkWorld banner image">
+<h3>Fixing Limitations</h3>
+<p>
+Projects using Scintilla have run into some limitations of the existing design.
+One limitation is that there is only one byte of styling information available 
+for each byte of text. Some projects want to associate more styles than are
+possible with one byte. This may be because of allowing a complex mix of 
+languages in a document such as HTML with embedded client and server-side 
+scripts. ASP.NET allows any combination of the (more than 10) .NET languages 
+to be used for server side scripts. 
+More indicators are wanted by some projects. This can include indicators
+of bad code, incorrect indentation and failures to follow coding conventions
+with each indicator taking one bit from the style byte. 
+</p>
+<p>
+For some tasks such as displaying large log files, 
+the space used by the style buffer is significant so it should be possible to turn 
+off the style buffer. 
+This could further evolve to allow a callback function to style just those lines 
+that are visible.
+</p>
+<p>
+There are several ways to overcome these limitations. One is to widen the styling 
+information to be 16 or 32 bits or to be a selectable number of bits. 
+Another approach is to allow multiple independent styling buffers with rules defined
+to combine these independent styles into graphical attributes. 
+For example, there could be
+both a basic style buffer using 8 bits to define the lexical class of each character
+and a warning style buffer using 3 bits to define different type of warning such as 
+invalid code, non portable extensions, and bad indentation and a 1 bit style buffer
+for spelling mistakes. 
+These could be combined into a 16 bit styling unit and then this could be decoded into 
+graphical attributes. As the set of buffers used could vary over time, such as deciding 
+to turn on spell checking, the particular bits used for each feature should be 
+determined at run time.
+The current hard-coded style indices are too inflexible.
+</p>
+<p>
+The current styling interface only really supports single pass styling.
+Some users are doing multi-pass styling but this has been difficult because of the
+lack of direct support.
+An example of this would be to perform an initial lexical styling pass 
+to determine the primary appearance of the text and then a second slower 
+code analysis pass would look for errors and highlight them with indicators.
+</p>
+<p>
+Some source code consists of a set of languages combined together. Examples include
+C++ with embedded SQL, and web pages with both server-side and client-side scripts.
+Scintilla uses a large and complex monolithic lexer to process web pages with embedded
+scripts. This lexer is dificult to enhance to support another web preprocessor or scripting 
+language. A more flexible technique would allow the combination of lexers so that
+one lexer is responsible for handling the preprocessor, another for handling HTML, 
+and a third for handling client-sde scripts. Adding another client-side scripting language
+could then be done by producing or reusing a lexer just for that language.
+</p>
+<h3>Large Character Sets</h3>
+<p>
+Text encoded in Unicode and other large character sets could be stored 
+in Scintilla using a uniform 2 or 4 bytes per character. This may have space 
+and performance benefits over the current scheme which allows variable size 
+encodings like UTF-8.
+</p>
+<h3>Structured API</h3>
+<p>
+Scintilla is currently a monolithic component exposing a single API
+over the whole of its functionality. Exposing more of the internal classes as 
+a structured object model means containers can combine those 
+classes with more freedom and provide a more natural API.
+There is now some support for treating the document as a separate object to 
+its views but to perform any operations on the document, it must be selected 
+into a view. It should be possible to perform any document operation, such as
+changing the text or searching directly on a document even when it is not 
+viewed at all. The style settings should be accessible as part of a hierarchy 
+so setting a font could be performed as:<br />
+<code>styles[C_COMMENT].font = "Geneva"</code><br />
+or as:<br />
+<code>styles[C_COMMENT] = new Style(styles[C_DEFAULT], "Geneva") </code>
+</p>
+<p>
+Some aspects of Scintilla have been assigned to either the document or the view
+depending on where they made the most sense for most projects. It may be useful
+to allow style buffers, fold points or markers to be associated with a view rather 
+than with the document. It could be made possible for this to be configured
+by the container including rules for combining the view and document based data.
+An example could be an error checking view which includes extra error indicators 
+that would be displayed in addition to the primary clean view.
+</p>
+<p>
+Extending all the built in classes should be supported to allow customisation 
+to be accomplished by code injected into the class hierarchy in the natural place
+to achieve a task rather than requiring modifications to be located either
+on the exterior layer of the component or using the callback mechanism. 
+For example, it should be possible to extend the Document class with a locale
+sensitive word break method replacing the existing simple word break method.
+For this to work, there may need to be a factory class used to create all 
+objects rather than allowing the bare use of "new" so that client code can ask
+that all requests for "Document" objects be satisfied by returning 
+"LocaleSensitiveDocument" objects.
+</p>
+<h3>Sharing the window</h3>
+<p>
+Scintilla supports call tips, autocompletion lists and popup menus. Many other types 
+of controls could be displayed within the Scintilla window. 
+It should be possible for an application to define new controls that share the window
+and input events and respond correctly to changes in Scintilla.
+It is not enough to just create a window and insert it inside Scintilla as some widgets 
+need to watch input characters (such as an autocompletion stealing the arrow keys 
+to move its selection) or be sensitive to the user clicking the mouse away from 
+the location where the control was created causing the control to disappear.
+</p>
+<h3>Portability</h3>
+<p>
+Scintilla has proven to be quite portable to new graphical toolkits starting with
+Windows and GTK+ and now extending to wxWindows and Qt. Additional 
+portability to emerging toolkits such as GDI+, as discussed on the 
+<a href="SWPortability.html">portability page</a>, will allow 
+Scintilla to be used in new types of project. 
+</p>
+<p>
+Much of the code in Scintilla, such as the lexical analysis, is useful in contexts
+other than GUI applications, such as showing styled text on web pages
+or examining code for problems. 
+Code should be ignorant that it is communicating 
+with a GUI whenever possible so that such code can be reused in other 
+applications. 
+</p>
+<p>
+Coding in low level languages such as C++, Java or C# is tedious and error prone
+although often required to meet performance objectives.
+Higher level languages such as Python and Lua make it easier to write high quality
+code but that code may run too slowly for an interactive application. 
+It should be possible to achieve the best of both worlds by implementing the
+performance bottleneck components in a low level language and then glue them 
+together with a high level language. On the managed execution platforms
+cross language calling and inheritance is very simple so a combination of languages
+can be used.
+</p>
+</body>
+</html>

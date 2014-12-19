@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="generator" content="SciTE" />
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <meta name="keywords" content="SinkWorld, Scintilla, SciTE, Editing Component, Text Editor" />
+    <meta name="Date.Modified" content="20050529" />
+    <title>Tentacle - Build instructions</title>
+    <link rel="stylesheet" type="text/css" href="SW.css">
+</head>
+<body>
+<div style="background-color:#333333">
+<img src="PearlBack.jpg" height="120" width="1024" alt="SinkWorld banner image">
+</div>
+<h2>These notes are incomplete</h2>
+<p>There are several places in build scripts where files are expected to be in particular paths
+and these will need to be modified.
+Other things may only work because of my particular setup and may require work.</p>
+<h3>Building and running Tentacle and Pentacle</h3>
+<p>Tentacle is a demonstration editor application using the SinkWorld library.
+It is written in a subset of C++ that is automatically converted into Java and C# to run
+on the JVM and .Net framework.</p>
+<p>Pentacle is the same application written in Python running on the same platforms.</p>
+<h3>Download</h3>
+<p>The code can be checked out of the <a href="https://sourceforge.net/cvs/?group_id=2439">Scintilla CVS</a> as the module "sinkworld".
+<h3>Directory layout</h3>
+<ul>
+<li>bin - Build scripts</li>
+<li>base - The core classes</li>
+<li>lexers - Language lexers and folders</li>
+<li>java - Translation of base and lexers to Java</li>
+<li>csharp - Translation of base and lexers to Java</li>
+<li>test - Unit tests that can be run on Windows using cppunit</li>
+<ul>
+<li>examples</li>
+</ul>
+<li>doc - Documentation</li>
+<li>tentacle - Demonstration applications</li>
+<ul>
+<li>cxx - Tentacle application written in C++ which can be compiled for GTK+/Linux or Windows</li>
+<li>java - Tentacle and Pentacle applications for Java environment, mostly translated from cxx</li>
+<li>csharp - Tentacle and Pentacle applications for .NET, mostly translated from cxx</li>
+<li>python - Pentacle application for GTK+/Linux or Windows</li>
+</ul>
+</ul>
+<h3>Prerequisite tools</h3>
+<p>The full suite requires a large set of tools to build and run. Particular targets
+require fewer prerequisites as listed later.
+The URLs here are either for cross platform versions or Windows versions for tools
+that are normally available on Linux.
+Where version numbers are given they are the versions developed with and more recent
+versions should be OK.
+<ol>
+<li><a href="http://www.python.org/2.4.1/">Python 2.4</a> required by all targets</li>
+<li><a href="http://www.mingw.org/download.shtml">make</a></li>
+<li>Visual Studio .NET 2003</li>
+<li><a href="http://www.scons.org/download.php">scons 0.96.90</a></li>
+<li><a href="http://java.sun.com/j2se/1.5.0/download.jsp">Java J2SE 5.0</a></li>
+<li><a href="http://msdn.microsoft.com/netframework/downloads/updates/default.aspx">.NET Framework 2.0 SDK 2 x86</a></li>
+<li><a href="http://www.boost.org/">Boost</a></li>
+<li><a href="http://www.boost.org/tools/build/v1/build_system.htm">Boost Build</a></li>
+<li><a href="http://starship.python.net/crew/theller/ctypes/">ctypes 0.9.6</a></li>
+<li><a href="http://www.jython.org/download.html">Jython 2.1</a></li>
+<li><a href="http://www.gotdotnet.com/workspaces/workspace.aspx?id=ad7acff7-ab1e-4bcb-99c0-57ac5a3a9742">IronPython 0.9.5</a></li>
+<li><a href="http://cppunit.sourceforge.net/cgi-bin/moin.cgi">cppunit</a> only needed for unit tests on Windows</li>
+</ol>
+</p>
+<p>
+On recent distributions of Linux most of the tools should be included but Jython and
+Boost will need to be downloaded.
+</p>
+<h3>Targets with prerequisites</h3>
+<p>
+<table style="margin-left:4mm;border:1px solid #707070;border-collapse:collapse;" border="1">
+<tr><td colspan="3" style="font-weight:bold;">Tentacle</td></tr>
+<tr><td>C++/Win32 unit tests</td><td>1,3,4</td><td>test</td></tr>
+<tr><td>C++/GTK+2.4/Linux</td><td>1,2,3</td><td>tentacle/cxx</td></tr>
+<tr><td>C++/Win32</td><td>1,3</td><td>tentacle/cxx</td></tr>
+<tr><td>Java 1.5</td><td>1,2,5</td><td>tentacle/java</td></tr>
+<tr><td>C#/.Net</td><td>1,2,6</td><td>tentacle/csharp</td></tr>
+<tr><td colspan="3" style="font-weight:bold;">Pentacle</td></tr>
+<tr><td>Python/GTK+2.4/Linux</td><td>1,2,3,7,8</td><td>tentacle/python</td></tr>
+<tr><td>Python/Win32</td><td>1,3,4,7,8,9</td><td>tentacle/python</td></tr>
+<tr><td>Jython 2.1</td><td>1,2,5,10</td><td>tentacle/java</td></tr>
+<tr><td>IronPython 0.7.5</td><td>1,2,6,11</td><td>tentacle/csharp</td></tr>
+</table>
+</p>
+<h3>Building</h3>
+<h4>Initial step for all targets: Translate.py</h4>
+<p>The first step for all targets is to run bin/Translate.py from the bin directory.
+This script expands code templates and translates C++ code to Java and C#.
+The generated files and object files can be removed with "Translate.py clean".
+</p>
+<h4>Options files</h4>
+<p>Tentacle and Pentacle use a set of files to specify the modes available and personal
+preferences. Modes are stored in tentacle/*.mode and preferences in user.options.
+These should be copied into the user's home directory (~ on Linux and %USERPROFILE%
+on Windows) before running the application.
+</p>
+<h4>C++/Win32 unit tests</h4>
+<p>The unit tests are optional but can help ensure that much of the library code works after
+any modifications.
+From the top level directory, run scons to compile base and lexers.
+In the test directory compile SimpleTest.cxx linking in the base, lexers and cppunit libraries.
+The command line should be like this but with the cppunit home directory fixed up:<br />
+<code>
+cl /Zi -EHsc -MD /I..\base /I..\lexers /IC:\cppunit\include SimpleTest.cxx /link /LIBPATH:..\base /LIBPATH:..\lexers /LIBPATH:C:\cppunit\lib base.lib lexers.lib cppunit.lib
+</code><br/>
+Then run "SimpleTest" which will report the number of tests that succeeded.
+</p>
+<h4>C++/GTK+2.4/Linux</h4>
+<p>In the tentacle/cxx directory run make to produce a tentacle executable.
+</p>
+<h4>C++/Win32</h4>
+<p>From Visual Studio .Net 2003, load tentacle/cxx/Tentacle.sln and build and run.</p>
+<p>Has also worked in Visual Studio 2005.</p>
+<p>The code runs in MSVC 6 but there is no project for that.</p>
+<h4>Java 1.5</h4>
+<p>In the tentacle/java directory run make to produce tentacle.jar. </p>
+<p>Run with "java -jar tentacle.jar".</p>
+<p>Has also worked with Java 1.4 but this has not been tested with current code. </p>
+<h4>C#/.Net</h4>
+<p>In the tentacle/csharp directory run make to produce TentacleN.exe.
+</p>
+<h4>Python/GTK+2.4/Linux</h4>
+<p>In the tentacle/python directory run "bjam -sBUILD=debug test" to build and test the SinkWorld.so
+library. This library will be found in a deeply nested subdirectory based on compilation options, and there
+will be both  the library with a Boost version number name like "SinkWorld.so.1.32.0" and a link file
+"SinkWorld.so". </p>
+<p>Copy the library files to tentacle/python.</p>
+<p>Run application with "Python PentacleGTK.py".</p>
+<h4>Python/Win32</h4>
+<p>In the tentacle/python directory run "bjam -sBUILD=debug test" to build and test the SinkWorld.pyd
+library. This library will be found in a deeply nested subdirectory based on compilation options.</p>
+<p>Copy the library file to tentacle/python.</p>
+<p>Run application with "python PentacleWin.py".</p>
+<h4>Jython 2.1</h4>
+<p>First, follow the instructions for Java 1.5 to compile the Java files. </p>
+<p>Run application with "jython PentacleJ.py".
+</p>
+<h4>IronPython 0.9.5</h4>
+<p>First, follow the instructions for C#/.Net to build the library in SinkWorld.dll.</p>
+<p>Run application with "IronPythonConsole PentacleNet.py".
+</p>
+</body>
+</html>

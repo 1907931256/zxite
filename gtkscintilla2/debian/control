@@ -1,0 +1,22 @@
+Source: gtkscintilla2.0
+Priority: optional
+Maintainer: Sven Herzberg <herzi@gnome-de.org>
+Build-Depends: debhelper (>> 4.0.0)
+Standards-Version: 3.5.8
+
+Package: libgtkscintilla2.0-dev
+Section: devel
+Architecture: any
+Depends: libgtkscintilla2.0-0 (= ${Source-Version}), libgtk2.0-dev
+Description: Library header files and static libraries for libgtkscintilla2.0
+ Headers files and static libraries needed for compiling other programs against
+ gtkscintilla2.
+
+Package: libgtkscintilla2.0-0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends} ${misc:Depends}
+Description: A GTK+2 wrapper for Scintilla editing component
+ This is GtkScintilla2, a GTK+2 wrapper for the Scintilla (www.scintilla.org)
+ editing component wich adds some facility to this powerful component
+ written by Neil Hodgson (and may others).

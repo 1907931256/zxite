@@ -1,0 +1,180 @@
+# Make file for SciTE on Windows Visual C++ version
+# Copyright 1998-2000 by Neil Hodgson <neilh@scintilla.org>
+# The License.txt file describes the conditions under which this software may be distributed.
+# This makefile is for using Visual C++ and nmake. 
+# The main makefile uses mingw32 gcc and may be more current than this file.
+
+CC = cl
+RC = rc
+LD = link
+
+PROG	= ../bin/SciTE.exe
+PROGSTATIC = ../bin/Sc1.exe
+
+LDFLAGS = /NODEFAULTLIB:LIBC KERNEL32.lib USER32.lib GDI32.lib COMDLG32.lib COMCTL32.lib ADVAPI32.lib IMM32.lib SHELL32.LIB OLE32.LIB
+INCLUDEDIRS=-I ../../scintilla/include -I ../../scintilla/win32 -I ../src -I ../lua 
+CXXFLAGS = -TP -Ox -W4 -D LUA_SCRIPTING
+# The Lua .c code has some warnings at W4
+CCFLAGS = -TC -Ox -W3 -D LUA_SCRIPTING
+
+!IFDEF DEBUG
+CXXFLAGS=$(CXXFLAGS) /MDd /Zi 
+CCFLAGS=$(CCFLAGS) /MDd /Zi 
+LDFLAGS=/DEBUG $(LDFLAGS)
+!ELSE
+CXXFLAGS=$(CXXFLAGS) /MD
+CCFLAGS=$(CCFLAGS) /MD 
+!ENDIF
+
+.cxx.obj:
+	$(CC) $(INCLUDEDIRS) $(CXXFLAGS) -c $*.cxx -o $@
+
+.rc.res:
+	$(RC) $(INCLUDEDIRS) $*.rc
+	
+DLLS=..\bin\Scintilla.dll ..\bin\SciLexer.dll
+
+ALL:	$(PROG) $(PROGSTATIC) $(DLLS) ..\bin\SciTEGlobal.properties
+
+clean:
+	del /q *.exe *.obj *.obj *.dll *.res *.map
+
+..\bin\Scintilla.dll:	..\..\scintilla\bin\Scintilla.dll
+	copy ..\..\scintilla\bin\Scintilla.dll $@
+
+..\bin\SciLexer.dll:	..\..\scintilla\bin\SciLexer.dll
+	copy ..\..\scintilla\bin\SciLexer.dll $@
+	
+..\bin\SciTEGlobal.properties:	..\src\SciTEGlobal.properties
+	copy ..\src\SciTEGlobal.properties $@
+
+OBJS = SciTEBase.obj SciTEWin.obj LuaExtension.obj \
+#OBJS = SciTEBase.obj SciTEWin.obj \
+	..\..\scintilla\win32\WindowAccessor.obj \
+	..\..\scintilla\win32\PropSet.obj \
+	..\..\scintilla\win32\PlatWin.obj \
+	..\..\scintilla\win32\UniConversion.obj
+	
+LUAOBJS = lapi.obj lauxlib.obj lbuffer.obj lbuiltin.obj ldo.obj lfunc.obj \
+	lgc.obj llex.obj lmem.obj lobject.obj lparser.obj lstate.obj lstring.obj \
+	ltable.obj ltm.obj lundump.obj lvm.obj lzio.obj liolib.obj lstrlib.obj
+#LUAOBJS = 
+
+$(PROG): $(OBJS) $(LUAOBJS) SciTERes.res
+	$(LD) /opt:nowin98 /OUT:$@ $(OBJS) $(LUAOBJS) SciTERes.res $(LDFLAGS)
+	
+OBJSSTATIC = Sc1.obj SciTEBase.obj LuaExtension.obj \
+	..\..\scintilla\win32\KeyWords.obj \
+	..\..\scintilla\win32\LexCPP.obj \
+	..\..\scintilla\win32\LexHTML.obj \
+	..\..\scintilla\win32\LexLua.obj \
+	..\..\scintilla\win32\LexOthers.obj \
+	..\..\scintilla\win32\LexPerl.obj \
+	..\..\scintilla\win32\LexPython.obj \
+	..\..\scintilla\win32\LexSQL.obj \
+	..\..\scintilla\win32\LexVB.obj \
+	..\..\scintilla\win32\WindowAccessor.obj \
+	..\..\scintilla\win32\DocumentAccessor.obj \
+	..\..\scintilla\win32\PropSet.obj \
+	..\..\scintilla\win32\ScintillaWinL.obj \
+	..\..\scintilla\win32\ScintillaBaseL.obj \
+	..\..\scintilla\win32\Editor.obj \
+	..\..\scintilla\win32\Document.obj \
+	..\..\scintilla\win32\CellBuffer.obj \
+	..\..\scintilla\win32\ContractionState.obj \
+	..\..\scintilla\win32\CallTip.obj \
+	..\..\scintilla\win32\PlatWin.obj \
+	..\..\scintilla\win32\UniConversion.obj \
+	..\..\scintilla\win32\KeyMap.obj \
+	..\..\scintilla\win32\Indicator.obj \
+	..\..\scintilla\win32\LineMarker.obj \
+	..\..\scintilla\win32\Style.obj \
+	..\..\scintilla\win32\ViewStyle.obj \
+	..\..\scintilla\win32\AutoComplete.obj
+
+SciTEBase.obj: ..\src\SciTEBase.cxx ..\src\SciTEBase.h ..\src\SciTE.h \
+	..\src\Extender.h \
+	..\..\scintilla\include\Platform.h \
+	..\..\scintilla\include\PropSet.h \
+	..\..\scintilla\include\Accessor.h \
+	..\..\scintilla\include\KeyWords.h \
+	..\..\scintilla\include\Scintilla.h \
+	..\..\scintilla\include\SciLexer.h
+	$(CC) $(INCLUDEDIRS) $(CXXFLAGS) /c ..\src\SciTEBase.cxx /Fo$@
+	
+LuaExtension.obj: ..\src\LuaExtension.cxx ..\src\Extender.h ..\src\LuaExtension.h \
+	..\..\scintilla\include\Platform.h \
+	..\..\scintilla\include\PropSet.h \
+	..\..\scintilla\include\Accessor.h \
+	..\..\scintilla\include\Scintilla.h
+	$(CC) $(INCLUDEDIRS) $(CXXFLAGS) /c ..\src\LuaExtension.cxx /Fo$@
+	
+SciTEWin.obj: SciTEWin.cxx ..\src\SciTEBase.h ..\src\SciTE.h \
+	..\src\Extender.h \
+	..\src\LuaExtension.h \
+	..\..\scintilla\include\Platform.h \
+	..\..\scintilla\include\PropSet.h \
+	..\..\scintilla\include\Accessor.h \
+	..\..\scintilla\include\KeyWords.h \
+	..\..\scintilla\include\Scintilla.h \
+	..\..\scintilla\include\SciLexer.h
+
+Sc1.obj: SciTEWin.cxx ..\src\SciTEBase.h ..\src\SciTE.h \
+	..\..\scintilla\include\Platform.h \
+	..\..\scintilla\include\PropSet.h \
+	..\..\scintilla\include\Accessor.h \
+	..\..\scintilla\include\KeyWords.h \
+	..\..\scintilla\include\Scintilla.h
+	$(CC) $(INCLUDEDIRS) $(CXXFLAGS) /D STATIC_BUILD /c SciTEWin.cxx /Fo$@
+
+lapi.obj: ..\lua\lapi.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lauxlib.obj: ..\lua\lauxlib.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lbuffer.obj: ..\lua\lbuffer.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lbuiltin.obj: ..\lua\lbuiltin.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+ldo.obj: ..\lua\ldo.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lfunc.obj: ..\lua\lfunc.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lgc.obj: ..\lua\lgc.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+llex.obj: ..\lua\llex.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lmem.obj: ..\lua\lmem.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lobject.obj: ..\lua\lobject.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lparser.obj: ..\lua\lparser.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lstate.obj: ..\lua\lstate.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lstring.obj: ..\lua\lstring.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+ltable.obj: ..\lua\ltable.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+ltm.obj: ..\lua\ltm.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lundump.obj: ..\lua\lundump.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lvm.obj: ..\lua\lvm.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lzio.obj: ..\lua\lzio.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+liolib.obj: ..\lua\liolib.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+lstrlib.obj: ..\lua\lstrlib.c
+	$(CC) $(INCLUDEDIRS) $(CCFLAGS) -c ..\lua\$*.c /Fo$@
+	
+# A custom rule for .obj files built by scintilla:
+..\..\scintilla\win32\PlatWin.obj: 	..\..\scintilla\win32\PlatWin.cxx
+	echo You must run the Scintilla makefile to build $*.obj
+	fail_the_build # Is there an official way to do this?
+	
+Sc1Res.res:	SciTERes.rc ..\src\SciTE.h ..\..\scintilla\win32\PlatformRes.h
+	$(RC) $(INCLUDEDIRS) -dSTATIC_BUILD -fo$@ SciTERes.rc
+	
+$(PROGSTATIC): $(OBJSSTATIC) $(LUAOBJS) Sc1Res.res
+	$(LD) /opt:nowin98 /OUT:$@ $(OBJSSTATIC) $(LUAOBJS) Sc1Res.res $(LDFLAGS)
