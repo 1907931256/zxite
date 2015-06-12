@@ -1,0 +1,4 @@
+*.o
+scintilla/bin/scintilla.a
+scite/bin/SciTE
+scite/gtk/deps.mak
