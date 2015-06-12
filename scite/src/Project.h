@@ -1,18 +1,27 @@
 
 
+#include<iostream>
+
+
 bool glob_check(const char *glob);
 bool glob_match(const char *str, const char *glob);
 
 
 
-struct ImportRule {
-	SString dir;
-	SString glob;
+struct LabelPath {
+	SString label;
+	SString path;
+	SString filename;
 
-	ImportRule(SString d, SString r): dir(d), glob(r) {}
+	LabelPath(): label(), path() { }
+	LabelPath(SString d, SString r, bool file_set);
 
-	bool operator<(const ImportRule &other) const;
-	bool operator==(const ImportRule &other) const;
+	void show() {
+		std::cerr <<label.c_str() <<" " <<path.c_str() <<"\n";
+	}
+
+	bool operator<(const LabelPath &other) const;
+	bool operator==(const LabelPath &other) const;
 };
 
 
@@ -22,17 +31,17 @@ class Project {
 
 	SString name;
 
-	std::list<ImportRule> ruleInclude;
-	std::list<SString> ruleExclude;
+	std::list<LabelPath> ruleInclude;
+	std::list<LabelPath> ruleExclude;
 
-
-	void FillFiles(FilePath dir, SString glob, bool recursive, int prefix);
+	void ProcessXxclude(const char * prop_type, std::list<LabelPath> &prop_list);
+	void FillFiles(SString label, FilePath dir, SString glob, bool recursive);
 public:
 	bool opened;
 	GUI::gui_string msg;
 
-	FilePath path;
-	std::vector<FilePath> files;
+	FilePath basePath;
+	std::vector<LabelPath> files;
 
 	Project() : opened(false) {}
 	~Project() {}

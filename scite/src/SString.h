@@ -201,7 +201,7 @@ public:
 		sizeGrowth = sizeGrowth_;
 	}
 	const char *c_str() const {
-		return s ? s : "";
+		return s && sLen ? s : "";
 	}
 	/** Give ownership of buffer to caller which must use delete[] to free buffer. */
 	char *detach() {
@@ -241,6 +241,8 @@ public:
 		return append(sOther, strlen(sOther), sep);
 	}
 	SString &insert(lenpos_t pos, const char *sOther, lenpos_t sLenOther=measure_length);
+
+	SString &trim();
 
 	/**
 	 * Remove @a len characters from the @a pos position, included.

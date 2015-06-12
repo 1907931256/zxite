@@ -69,7 +69,7 @@ void PropSetFile::SetInc(const char *key, const char *inc, const char *val, int 
 		test.assign(key, inc - key).append(buf).append(inc + 2, lenKey - 2 - (inc - key));
 	} while (props.find(test) != props.end());
 
-	std::cout << "Setting " <<test << " = " << std::string(val, lenVal) << "\n";
+	//std::cout << "Setting " <<test << " = " << std::string(val, lenVal) << "\n";
 	props[test] = std::string(val, lenVal);
 }
 
@@ -785,6 +785,31 @@ int SString::substitute(const char *sFind, const char *sReplace) {
 		c++;
 	}
 	return c;
+}
+
+SString &SString::trim() {
+	if (sLen == 0)
+		return *this;
+	lenpos_t beg = 0;
+
+	// Remove starting whitespaces
+	while (beg < sLen && (s[beg] == ' ' || s[beg] == '\t'))
+		beg++;
+
+	sLen -= beg;
+
+	// Remove finishing whitespaces
+	while (sLen && (s[sLen - 1] == ' ' || s[sLen - 1] == '\t')) {
+		//... except the last one if the penultimate is an escape char
+		if (sLen > 1 && s[sLen - 2] == '\\')
+			break;
+		sLen--;
+	}
+	memmove(s, s + beg, sLen);
+
+	s[sLen] = 0;
+
+	return *this;
 }
 
 char *SContainer::StringAllocate(lenpos_t len) {

@@ -27,7 +27,6 @@
 #include "Project.h"
 #include "SciTEBase.h"
 
-
 #ifdef unix
 static const char SEP = '/';
 #endif
@@ -96,6 +95,8 @@ bool glob_match(const char *str, const char *glob) {
 	const unsigned char *s = (const unsigned char *)str;
 	const unsigned char *g = (const unsigned char *)glob;
 	const unsigned char *s0 = (const unsigned char *)s;
+
+	//std::cerr <<"GM: <" <<str <<"> <" <<glob <<"\n";
 
 	for (;;) {
 		if (*g == '*') {
@@ -193,23 +194,103 @@ bool glob_match(const char *str, const char *glob) {
 }
 
 
+LabelPath::LabelPath(SString d, SString r, bool file_set): label(d), path(r) {
 
+	if (file_set) {
+		const GUI::gui_string &std_path = r.c_str();
+		size_t sep_last = std_path.rfind(SEP);
+		//std::cerr <<"---- bug " <<sep_last <<" " <<std_path.length() <<"\n";
+		filename = path.substr(sep_last + 1, std_path.length());
+	}
 
-bool ImportRule::operator<(const ImportRule &other) const
-{
-	return strcmp(dir.c_str(), other.dir.c_str()) < 0;
+	//std::cerr <<"---- OH " <<d.length() <<" " <<r.length() <<" " <<(long long)d.c_str() <<" " <<(long long)r.c_str() <<"\n";
 }
 
-bool ImportRule::operator==(const ImportRule &other) const
-{
-	if (0)
-	printf(" ~~~~~ <%s[%lu] == %s[%lu] ?>   <%s[%lu] == %s[%lu] ?>   -> %x / %x ~~~~~ \n",
-		dir.c_str(), dir.size(), other.dir.c_str(), other.dir.size(),
-		glob.c_str(), glob.size(), other.glob.c_str(), other.glob.size(),
-		dir == other.dir, glob == other.glob);
 
-	return (dir == other.dir) && (!glob || !other.glob || glob == other.glob);
+bool LabelPath::operator<(const LabelPath &other) const
+{
+	const unsigned char * s1 = (const unsigned char *) label.c_str();
+	const unsigned char * s2 = (const unsigned char *) other.label.c_str();
+
+	for (;;) {
+		if (*s1 == '\0') {
+			if (*s2 == '\0')
+				return strcmp(filename.c_str(), other.filename.c_str()) < 0;
+			else
+
+				return *s2 != SEP;
+		}
+
+		if (*s2 == '\0')
+			return *s1 == SEP;
+
+		if (*s1 != *s2)
+			return *s1 < *s2;
+
+		s1++, s2++;
+	}
 }
+
+bool LabelPath::operator==(const LabelPath &other) const
+{
+	#if 0
+	if (path == "zite.zte" || other.path == "zite.zte")
+	printf(" ~~~~~ <%s[%lu] == %s[%lu] ?>   <%s[%lu] == %s[%lu] ?>   -> %x / %x => %x ~~~~~ \n",
+		label.c_str(), label.size(), other.label.c_str(), other.label.size(),
+		path.c_str(), path.size(), other.path.c_str(), other.path.size(),
+		label == other.label, path == other.path,
+		(label == other.label) && (!path || !other.path || path == other.path));
+	#endif
+
+	return (label == other.label) && (!path || !other.path || path == other.path);
+}
+
+
+
+void Project::ProcessXxclude(const char * prop_type, std::list<LabelPath> &prop_list) {
+
+	SString value;
+	int i = 0;
+	while ((value = propFile.Get(SString(prop_type).append(i++).c_str()))) {
+
+		// proj.include.n = [ label | ] files [; files [; ...] ]
+		// with 'files' = folder or regex or folder/regex
+
+		int pos = value.search("|");
+		SString label;
+		if (pos != -1) {
+			label = value.substr(0, pos);
+			label.trim();
+			if (label == "")
+				label = "|";
+		}
+
+		while (++pos < (int)value.length()) {
+			int npos = value.search(";", pos);
+			if (npos == -1)
+				npos = value.length();
+
+			FilePath path(value.substr(pos, npos - pos).trim().c_str());
+			SString glob = path.NormalizePath().AsInternal();
+			if (glob.length() && glob_check(glob.c_str())) {
+				LabelPath xxx = LabelPath(label.trim(), glob, false);
+				prop_list.push_back(xxx);
+			}
+			pos = npos;
+		}
+	}
+
+	prop_list.sort();
+	prop_list.unique();
+
+	#if 0
+	std::cerr <<"===Rule: " <<prop_type <<"\n";
+	for (std::list<LabelPath>::iterator it = prop_list.begin(); it != prop_list.end(); it++)
+		std::cerr <<"   <" <<it->label.c_str() <<">\t<" <<it->path.c_str() <<">\n";
+	#endif
+}
+
+
 
 bool Project::open(FilePath file)
 {
@@ -225,91 +306,28 @@ bool Project::open(FilePath file)
 	}
 
 
-	path = propFile.Get("proj.path").c_str();
-	//std::cout <<"path: " <<path.AsInternal() <<"\n";
+	basePath = propFile.Get("proj.path").c_str();
 
-	if (!path.IsAbsolute())
-		path = file.Directory() + path.AsInternal();
-	//std::cout <<"path2: " <<path.AsInternal() <<"\n";
+	if (!basePath.IsAbsolute())
+		basePath = file.Directory() + basePath.AsInternal();
 
-	if (!path.IsDirectory()) {
+	if (!basePath.IsDirectory()) {
 		msg.assign(GUI_TEXT("Project path does not point to a valid directory"));
 		return false;
 	}
 
 	// Process all include rules
-	SString value;
-	int i = 0;
-	while ((value = propFile.Get(SString("proj.include.").append(i++).c_str()))) {
-
-		int fpos = value.search(";");
-		int pos = fpos + 1;
-
-		SString dir(value.substr(0, fpos).c_str());
-
-		// if no ';' or after first pos
-		if (fpos)
-			do {
-				int npos = value.search(";", pos);
-
-				FilePath full(dir.c_str());
-				if (pos)
-					full += value.substr(pos, npos - pos).c_str();
-				else
-					full += "**";
-				SString glob = full.NormalizePath().AsInternal();
-				if (glob_check(glob.c_str()))
-					ruleInclude.push_back(ImportRule(dir, glob.c_str()));
-
-				pos = npos + 1;
-			} while (pos);
-	}
-
-	ruleInclude.sort();
-	ruleInclude.unique();
-
-	// Process all exclude rules
-	i = 0;
-	while ((value = propFile.Get(SString("proj.exclude.").append(i++).c_str()))) {
-		int pos = 0;
-		do {
-			int npos = value.search(";", pos);
-			FilePath path = value.substr(pos, npos - pos).c_str();
-
-			if (path.IsFilename())
-				path = FilePath("**") + path + "**";
-
-			SString glob = path.NormalizePath().AsInternal();
-
-			if (glob_check(glob.c_str()))
-				ruleExclude.push_back(glob.c_str());
-
-			pos = npos + 1;
-		} while (pos);
-	}
-
-	ruleExclude.sort();
-	ruleExclude.unique();
-
-	// dbg
-	#if 0
-	std::cout <<"Rule Include:\n";
-	for (std::list<ImportRule>::iterator it = ruleInclude.begin(); it != ruleInclude.end(); it++)
-    		std::cout <<"   " <<it->dir.c_str() <<'\t' <<it->glob.c_str() <<'\n';
-
-	std::cout <<"Rule Exclude:\n";
-	for (std::list<SString>::iterator it = ruleExclude.begin(); it != ruleExclude.end(); it++)
-    		std::cout <<"   " <<it->c_str() <<'\t' <<it->c_str() <<'\n';
-	#endif
+	ProcessXxclude("proj.include.", ruleInclude);
+	ProcessXxclude("proj.exclude.", ruleExclude);
 
 	Populate();
 
 	// dbg
 	#if 0
-	i = 0;
-	std::cout <<"Files:\n";
-	for (std::vector<FilePath>::iterator it = files.begin(); it != files.end(); it++)
-    		std::cout <<std::setw(3) <<i++ <<"   " <<it->AsInternal() <<'\n';
+	int i = 0;
+	std::cerr <<"===Files:\n";
+	for (std::vector<LabelPath>::iterator it = files.begin(); it != files.end(); it++)
+    		std::cerr <<std::setw(3) <<i++ <<"   " <<it->label.c_str() <<"   " <<it->path.c_str() <<'\n';
 	#endif
 
 	opened = true;
@@ -335,42 +353,37 @@ bool Project::close()
 }
 
 
-void Project::FillFiles(FilePath dir, SString glob, bool recursive, int prefix) {
+void Project::FillFiles(SString label, FilePath dir, SString glob, bool recursive) {
 
 	FilePathSet dirSet, fileSet;
-	FilePath realDir = path + dir;
-	realDir.List(dirSet, fileSet);
 
-	//std::cout <<"   " << dir.AsInternal() <<' ' << dirSet.Length() <<' ' << fileSet.Length()<<'\n';
+	dir.List(dirSet, fileSet);
 
-	for (size_t i = 0; i < dirSet.Length(); i ++)
-		FillFiles(dirSet.At(i).AsInternal() + prefix, glob, recursive, prefix);
+	if (recursive)
+		for (size_t i = 0; i < dirSet.Length(); i ++)
+			FillFiles(label, dirSet.At(i), glob, recursive);
+
+	if (!label)
+		label = dir.AsInternal() + basePath.Length() + 1;
 
 	for (size_t i = 0; i < fileSet.Length(); i ++) {
-		FilePath entry = fileSet.At(i).AsInternal() + prefix;
-		entry = entry.NormalizePath();
+		const char * entry = fileSet.At(i).AsInternal()  + basePath.Length() + 1;
 
-    		//std::cout <<"   A: " <<entry.AsInternal() <<" ?? " <<glob.c_str() <<'\n';
-
-		if (!glob_match(entry.AsInternal(), glob.c_str()))
+		if (!glob_match(entry, glob.c_str()))
 			continue;
 
-    		//std::cout <<"   B: " <<entry.AsInternal() <<'\n';
 
-		std::list<SString>::iterator ex;
-		for (ex = ruleExclude.begin(); ex != ruleExclude.end(); ex++)
-			if (glob_match(entry.AsInternal(), ex->c_str()))
-				break;
+	//	std::list<SString>::iterator ex;
+	//	for (ex = ruleExclude.begin(); ex != ruleExclude.end(); ex++)
+	//		if (glob_match(entry.AsInternal(), ex->c_str()))
+	//			break;
+	//
+	//	std::cerr <<"   C: " <<entry.AsInternal() <<'\n';
+	//
+	//	if (ex != ruleExclude.end())
+	//		continue;
 
-    		//std::cout <<"   C: " <<entry.AsInternal() <<'\n';
-
-		if (ex != ruleExclude.end())
-			continue;
-
-    		//std::cout <<"   D: " <<entry.AsInternal() <<'\n';
-
-		files.push_back(entry.NormalizePath());
-		//std::cout <<"     - " << entry.AsInternal() <<'\n';
+		files.push_back(LabelPath(label, entry, true));
 	}
 
 }
@@ -378,19 +391,59 @@ void Project::FillFiles(FilePath dir, SString glob, bool recursive, int prefix) 
 
 void Project::Populate()
 {
-	int prefix = strlen(path.AsInternal()) + 1;
 
-	//std::cout <<"Populate!\n";
+	//std::cerr <<"===Populate!\n";
 
-	for (std::list<ImportRule>::iterator it = ruleInclude.begin(); it != ruleInclude.end(); it++)  {
-    		//std::cout <<"   " <<it->dir.c_str() <<'\t' <<it->glob.c_str() <<'\n';
-    		FilePath realDir = path + it->dir.c_str();
+	for (std::list<LabelPath>::iterator it = ruleInclude.begin(); it != ruleInclude.end(); it++)  {
+		//std::cerr <<"   " <<it->label.c_str() <<'\t' <<it->path.c_str() <<'\n';
 
-		if (realDir.IsDirectory())
-			FillFiles(it->dir.c_str(), it->glob, true, prefix);
+		const char * glob = it->path.c_str();
+		int pos = 0;
+		int last_sep = 0;
+		bool recursive = false;
+
+		for (;;) {
+			char c = glob[pos];
+			if (c == '\0') {
+				last_sep = pos;
+				glob = "**";
+				recursive = true;
+				break;
+			} else if (c == SEP) {
+				last_sep = pos;
+			} else if (c == '*' || c == '?' || c == '[') {
+				do {
+					if (c == '*' && glob[pos + 1] == '*') {
+						recursive = true;
+						break;
+					}
+				} while (glob[++pos]);
+				break;
+			} else if (c == '\\') {
+				pos++;
+			}
+			pos++;
+		}
+
+		SString path_str = it->path.substr(0, last_sep);
+		FilePath path = basePath + path_str.c_str();
+
+
+		if (path.IsDirectory())
+			// fill files
+			FillFiles(it->label, path, glob, recursive);
+
+		else if (path.Exists())
+
+			files.push_back(LabelPath(it->label, path_str, true));
 	}
 
+	//std::cerr <<"===Sort:\n";
+	// Sort according to operator < defined for LabelPath
 	std::sort(files.begin(), files.end());
-	std::vector<FilePath>::iterator last = std::unique(files.begin(), files.end());
+	std::vector<LabelPath>::iterator last = std::unique(files.begin(), files.end());
 	files.resize(last - files.begin());
+
+	//for (std::vector<LabelPath>::iterator it = files.begin(); it != files.end(); it++)
+	//	it->show();
 }

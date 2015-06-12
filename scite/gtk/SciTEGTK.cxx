@@ -387,7 +387,8 @@ protected:
 
 	virtual void UpdateTree();
 
-	bool ProcessFolder(GtkTreeIter *parent_iter, std::vector<FilePath>::iterator &it, int pos);
+	bool ProcessFolder(GtkTreeIter *parent_iter, std::vector<LabelPath>::iterator &it, size_t pos);
+	static void tree_row_activated_cb(GtkTreeView *view, GtkTreePath *path, GtkTreeViewColumn *column, SciTEGTK *scitew);
 	virtual void QuickOpen();
 	static void QuickOpenResponse(GtkWidget *w, gint resp, SciTEGTK *scitew);
 	int QuickOpenFill(GtkListStore *store, GUI::gui_string glob);
@@ -1013,67 +1014,139 @@ static const char SEP = '/';
 static const char SEP = '\\';
 #endif
 
+enum {
+	COLUMN_LABEL,
+	COLUMN_PATH,
+	COLUMN_MAX
+};
 
-int aaa = 0;
+bool SciTEGTK::ProcessFolder(GtkTreeIter *parent_iter, std::vector<LabelPath>::iterator &it, size_t pos) {
 
-bool SciTEGTK::ProcessFolder(GtkTreeIter *parent_iter, std::vector<FilePath>::iterator &it, int pos) {
-
-	GtkTreeIter iter;
+	//fprintf(stderr, "Iter <%s> [%zd] <%s>\n", it->label.c_str(), pos, it->filename.c_str());
 
 	for (;;) {
-		const GUI::gui_string &path = it->AsInternal();
-		size_t sep_next = path.find(SEP, pos);
-		//std::cout <<pos <<'\n';
+		GtkTreeIter iter;
+		SString &label = it->label;
 
 		gtk_tree_store_append (wTreeModel, &iter, parent_iter);
 
-		if (sep_next != GUI::gui_string::npos) {
-			// new folder
-			gtk_tree_store_set(wTreeModel, &iter, 0, path.substr(pos, sep_next - pos).c_str(), -1);
-			//std::cout << "\tFOLDER: " <<path.substr(pos, sep_next - pos) <<'\n';
+		if (pos < label.length() && label != "|") {
+			const GUI::gui_string folder = label.c_str();
+			size_t sep_next = folder.find(SEP, pos);
+			const GUI::gui_string folder2 = folder.substr(pos, sep_next - pos);
+
+			//fprintf(stderr, "Folder <%s> <%s> <%s> %zd %zd\n", label.c_str(), folder.c_str(), folder2.c_str(), pos, sep_next);
+
+			gtk_tree_store_set(wTreeModel, &iter, COLUMN_LABEL, folder2.c_str(), COLUMN_PATH, NULL, -1);
+
+			if (sep_next == GUI::gui_string::npos)
+				sep_next = label.length();
+
 			if (ProcessFolder(&iter, it, sep_next + 1))
 				return true;
 
+			//fprintf(stderr, " Check <%s> <%s> <%s> %zd %zd [%s] %d\n", label.c_str(), folder.c_str(), folder2.c_str(),
+			//	pos, sep_next, it->label.c_str(), folder.compare(0, pos - 1, it->label.c_str(), pos - 1));
+
+			if (folder.compare(0, pos - 1, it->label.c_str(), pos - 1))
+				return false;
+
 		} else {
-			// file
-			gtk_tree_store_set(wTreeModel, &iter, 0, path.substr(pos, GUI::gui_string::npos).c_str(), -1);
-			//std::cout <<"\t\t" <<path.substr(pos, GUI::gui_string::npos) <<'\n';
+			//fprintf(stderr, "   File <%s>\n", it->filename.c_str());
+			gtk_tree_store_set(wTreeModel, &iter, COLUMN_LABEL, it->filename.c_str(), COLUMN_PATH, it->path.c_str(), -1);
 			it++;
+			//fprintf(stderr, "   next <%s> <%s>\n", it->label.c_str(), it->filename.c_str());
+
+			if (it == project.files.end())
+				return true;
+
+			if (label != it->label)
+				return false;
 		}
-		if (it == project.files.end())
-			return true;
-
-		if (path.compare(0, pos, it->AsInternal(), pos))
-			return false;
 	}
-
 }
 
 void SciTEGTK::UpdateTree() {
 
 	gtk_tree_store_clear(wTreeModel);
 
-	std::vector<FilePath>::iterator it = project.files.begin();
+	std::vector<LabelPath>::iterator it = project.files.begin();
 
-	if (it != project.files.end())
+	while (it != project.files.end())
 		ProcessFolder(NULL, it, 0);
+}
+
+static void tree_cell_func(GtkTreeViewColumn *column, GtkCellRenderer *cell, GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
+{
+	(void) column, (void) data;
+
+	char *label, *path;
+
+	gtk_tree_model_get(model, iter, 0, &label, 1, &path, -1);
+
+	if (path == NULL) {
+		char *text = g_markup_printf_escaped ("<b>%s</b>", label);
+		g_object_set (cell, "markup", text, NULL);
+		g_free (text);
+	} else {
+		g_object_set (cell, "text", label, NULL);
+	}
+
+	g_free (path);
+	g_free (label);
 }
 
 
 
+static void tree_selection_cb(GtkTreeSelection *selection, GtkTreeModel *model) {
 
+	GtkTreeIter iter;
+	if (! gtk_tree_selection_get_selected (selection, NULL, &iter))
+		return;
+
+	GtkTreeView *view =gtk_tree_selection_get_tree_view (selection);
+	GtkTreePath *path = gtk_tree_model_get_path(model, &iter);
+
+	if (gtk_tree_view_row_expanded(view, path))
+		gtk_tree_view_collapse_row(view, path);
+	else
+		gtk_tree_view_expand_row(view, path, false);
+
+	gtk_tree_selection_unselect_path(selection, path);
+
+	gtk_tree_path_free(path);
+}
+
+
+void SciTEGTK::tree_row_activated_cb(GtkTreeView *view, GtkTreePath *path, GtkTreeViewColumn *column, SciTEGTK *scitew) {
+	(void) column;
+
+	GtkTreeModel *model = gtk_tree_view_get_model(view);
+
+
+	GtkTreeIter iter;
+	char *filepath;
+
+	gtk_tree_model_get_iter(model, &iter, path);
+	gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, COLUMN_PATH, &filepath, -1);
+
+	std::cout <<"  open: " <<filepath <<'\n';
+	scitew->Open(scitew->project.basePath + filepath, ofNone);
+
+	g_free (filepath);
+}
 
 int SciTEGTK::QuickOpenFill(GtkListStore *store, GUI::gui_string glob) {
 
 	gtk_list_store_clear(store);
 	int cnt = 0;
 
-	for (std::vector<FilePath>::iterator it = project.files.begin();  it != project.files.end(); it++)
+	for (std::vector<LabelPath>::iterator it = project.files.begin();  it != project.files.end(); it++)
 	{
 		GtkTreeIter iter;
-		if (glob.empty() || glob_match(it->AsInternal(), glob.c_str())) {
+		if (glob.empty() || glob_match(it->path.c_str(), glob.c_str())) {
 			gtk_list_store_append(store, &iter);
-			gtk_list_store_set(store, &iter, 0, it->AsInternal(), -1);
+			gtk_list_store_set(store, &iter, 0, it->path.c_str(), -1);
 			cnt++;
 		}
 	}
@@ -1105,7 +1178,7 @@ void SciTEGTK::QuickOpenResponse(GtkWidget *w, gint resp, SciTEGTK *scitew) {
 
 				std::cout <<"  open: " <<path <<'\n';
 
-				scitew->Open(scitew->project.path + path, ofNone);
+				scitew->Open(scitew->project.basePath + path, ofNone);
 
 			}
 
@@ -1966,7 +2039,7 @@ void SciTEGTK::FindInFiles() {
 	// MODIFAC
 	FilePath findInDir;
 	if (project.opened)
-		findInDir = project.path.AbsolutePath();
+		findInDir = project.basePath.AbsolutePath();
 	else
 		findInDir = filePath.Directory().AbsolutePath();
 
@@ -2576,6 +2649,7 @@ void SciTEGTK::QuitProgram() {
 }
 
 gint SciTEGTK::MoveResize(GtkWidget *w, GtkAllocation *alloc, SciTEGTK *scitew) {
+	(void) w, (void) alloc;
 
 	//printf("nsize: %4d %4d - %4d %4d  ->  %4d %4d - %4d %4d\n",
 	//	w->allocation.x, w->allocation.y, w->allocation.width, w->allocation.height,
@@ -3555,9 +3629,9 @@ void SciTEGTK::CreateUI() {
 	DividerNew(wDividerR, wContent);
 
 	// wTree
-	wTreeModel = gtk_tree_store_new (1, G_TYPE_STRING);
+	wTreeModel = gtk_tree_store_new(COLUMN_MAX, G_TYPE_STRING, G_TYPE_STRING);
 
-	wTree = gtk_scrolled_window_new (NULL, NULL);
+	wTree = gtk_scrolled_window_new(NULL, NULL);
 	//gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(PWidget(wTree)),
 	//	GTK_SHADOW_ETCHED_IN);
 	//gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(PWidget(wTree)),
@@ -3570,10 +3644,17 @@ void SciTEGTK::CreateUI() {
 
 	//gtk_widget_show(PWidget(wContent));
 
-  	GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(wTreeView), -1, NULL, renderer, "text", 0, NULL);
+	GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+
+	gtk_tree_view_insert_column_with_data_func(GTK_TREE_VIEW(wTreeView), -1, NULL, renderer, tree_cell_func, NULL, NULL);
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(wTreeView), FALSE);
-      	//g_signal_connect (wTreeView, "realize", G_CALLBACK (gtk_tree_view_expand_all), NULL);
+	//g_signal_connect (wTreeView, "realize", G_CALLBACK (gtk_tree_view_expand_all), NULL);
+
+	GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(wTreeView));
+
+	g_signal_connect (selection, "changed", G_CALLBACK(tree_selection_cb), GTK_TREE_MODEL(wTreeModel));
+	g_signal_connect (wTreeView, "row_activated", G_CALLBACK(tree_row_activated_cb), this);
+
 
 	// wEditor
 	wEditor.SetID(scintilla_new());

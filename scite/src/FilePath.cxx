@@ -180,9 +180,6 @@ int FilePath::RootLength() {
 #endif
 }
 
-const GUI::gui_char *FilePath::AsInternal() const {
-	return fileName.c_str();
-}
 
 std::string FilePath::AsUTF8() const {
 	return GUI::UTF8FromString(fileName);

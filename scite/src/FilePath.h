@@ -55,7 +55,8 @@ public:
 	bool IsAbsolute() const;
 	bool IsRoot() const;
 	static int RootLength();
-	const GUI::gui_char *AsInternal() const;
+	const GUI::gui_char *AsInternal() const { return fileName.c_str(); }
+	size_t Length() const { return fileName.length(); }
 	std::string AsUTF8() const;
 	FilePath Name() const;
 	FilePath BaseName() const;

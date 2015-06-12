@@ -3,13 +3,20 @@
 proj.name=Zite
 proj.path=.
 
-proj.include.++=src;*.cxx
-proj.include.++=src;*.h
-proj.include.++=gtk;*.cxx;*.h
 
-proj.include.++=../scintilla/src;*.cxx
-proj.include.++=../scintilla/include;*.h
-proj.include.++=sca_gtk;../scintilla/gtk/*.cxx;../scintilla/gtk/*.h
+#proj.include.++= test
 
+proj.include.++= zite/inc | src/*.h
+proj.include.++= zite/src | src/*.cxx; src/*.c
+proj.include.++= gtk/inc | gtk/*.h
+proj.include.++= gtk/src | gtk/*.cxx
+
+proj.include.++= scintilla/inc | ../scintilla/include/*.h
+proj.include.++= scintilla/src | ../scintilla/src/*.cxx
+proj.include.++= scintilla/gtk/inc |../scintilla/gtk/*.h
+proj.include.++= scintilla/gtk/src |../scintilla/gtk/*.cxx; ../scintilla/gtk/*.c
+
+proj.include.++= | zite.zte
+proj.include.++= | gtk/makefile
 
 
