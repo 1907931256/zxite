@@ -27,6 +27,7 @@ struct LabelPath {
 
 class Project {
 
+	FilePath projFile;
 	PropSetFile propFile;
 
 	SString name;
@@ -51,6 +52,7 @@ public:
 
 
 	void Populate();
+	SString BuildTags();
 
 
 };

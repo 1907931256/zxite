@@ -3376,6 +3376,7 @@ void SciTEBase::SetLineNumberWidth() {
 }
 
 void SciTEBase::MenuCommand(int cmdID, int source) {
+	// MODIFAC std::cout <<"mcmd: " << cmdID <<"\n";
 	switch (cmdID) {
 	case IDM_NEW:
 		// For the New command, the "are you sure" question is always asked as this gives
@@ -3997,6 +3998,38 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 	case IDM_MACROSTOPRECORD:
 		StopRecordMacro();
 		break;
+
+	case IDM_BUILDTAGS: {
+			SString cmd = project.BuildTags();
+			if (cmd.length()) {
+				AddCommand(cmd, ".", jobCLI);
+				Execute();
+			}
+		}
+		break;
+
+	case IDM_FINDTAG_ALL: {
+			std::cout <<"A\n";
+
+		}
+		break;
+	case IDM_FINDTAG_DEF: {
+			std::cout <<"B\n";
+
+		}
+		break;
+	case IDM_FINDTAG_DECL: {
+			std::cout <<"C\n";
+
+		}
+		break;
+	case IDM_FINDTAG_PATTERN: {
+			std::cout <<"D\n";
+
+		}
+		break;
+
+	break;
 
 	case IDM_HELP: {
 			SelectionIntoProperties();

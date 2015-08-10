@@ -305,6 +305,7 @@ bool Project::open(FilePath file)
 		return false;
 	}
 
+	projFile = file;
 
 	basePath = propFile.Get("proj.path").c_str();
 
@@ -391,7 +392,6 @@ void Project::FillFiles(SString label, FilePath dir, SString glob, bool recursiv
 
 void Project::Populate()
 {
-
 	//std::cerr <<"===Populate!\n";
 
 	for (std::list<LabelPath>::iterator it = ruleInclude.begin(); it != ruleInclude.end(); it++)  {
@@ -446,4 +446,44 @@ void Project::Populate()
 
 	//for (std::vector<LabelPath>::iterator it = files.begin(); it != files.end(); it++)
 	//	it->show();
+}
+
+
+SString Project::BuildTags()
+{
+	if (!opened)
+		return SString();
+
+	SString files_file = propFile.Get("proj.tags.files_file");
+	if (!files_file.length()) {
+		FilePath tmp = projFile.Directory() + "files.tag";
+		propFile.Set("proj.tags.files_file", tmp.AsInternal());
+	}
+
+	SString symbols_file = propFile.Get("proj.tags.symbols_file");
+	if (!symbols_file.length()) {
+		FilePath tmp = projFile.Directory() + "symbols.tag";
+		propFile.Set("proj.tags.symbols_file", tmp.AsInternal());
+	}
+
+	SString tag_cmd = propFile.Get("proj.tags.cmd");
+	if (!tag_cmd.length()) {
+		propFile.Set("proj.tags.cmd", "ctags --c-kinds=+p -R --fields=+n -L $(proj.tags.files_file) -f $(proj.tags.symbols_file)");
+	}
+
+	if (propFile.GetInt("proj.tags.files_auto", 1)) {
+		FilePath files_fp(propFile.Get("proj.tags.files_file").c_str());
+		FILE * fd = files_fp.Open(fileWrite);
+		if (fd) {
+			for (std::vector<LabelPath>::iterator it = files.begin(); it != files.end(); it++) {
+				::fwrite(it->path.c_str(), it->path.length(), 1, fd);
+				::fwrite("\n", 1, 1, fd);
+			}
+			::fclose(fd);
+		}
+	}
+
+	std::cout <<"TAGS: " <<propFile.GetExpanded("proj.tags.cmd").c_str() <<'\n';
+
+	return propFile.GetExpanded("proj.tags.cmd");
 }

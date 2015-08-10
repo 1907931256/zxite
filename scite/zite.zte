@@ -19,4 +19,7 @@ proj.include.++= scintilla/gtk/src |../scintilla/gtk/*.cxx; ../scintilla/gtk/*.c
 proj.include.++= | zite.zte
 proj.include.++= | gtk/makefile
 
-
+#proj.tags.files_file=ZTE_PATH/files.tag
+#proj.tags.symbols_file=ZTE_PATH/symbols.tag
+#proj.tags.files_auto=1
+#proj.tags.cmd=ctags --c-kinds=+p -R --fields=+n -L $(proj.tags.files_file) -f $(proj.tags.symbols_file)

@@ -859,6 +859,7 @@ void SciTEGTK::CopyPath() {
 void SciTEGTK::Command(unsigned long wParam, long) {
 	int cmdID = ControlIDOfCommand(wParam);
 	int notifyCode = wParam >> 16;
+	// MODIFAC std::cout <<"cmd tc: " << cmdID <<"\n";
 	switch (cmdID) {
 
 	case IDM_SRCWIN:
@@ -2665,16 +2666,20 @@ gint SciTEGTK::QuitSignal(GtkWidget *, GdkEventAny *, SciTEGTK *scitew) {
 }
 
 void SciTEGTK::ButtonSignal(GtkWidget *, gpointer data) {
+	// MODIFAC std::cout <<"butt\n";
 	instance->Command((guint)(long)data);
 }
 
 void SciTEGTK::MenuSignal(SciTEGTK *scitew, guint action, GtkWidget *) {
-	if (scitew->allowMenuActions)
+	if (scitew->allowMenuActions) {
+		// MODIFAC std::cout <<"act\n";
 		scitew->Command(action);
+	}
 }
 
 void SciTEGTK::CommandSignal(GtkWidget *, gint wParam, gpointer lParam, SciTEGTK *scitew) {
 
+	// MODIFAC std::cout <<"cmd sig\n";
 	scitew->Command(wParam, reinterpret_cast<long>(lParam));
 }
 
@@ -2732,15 +2737,17 @@ inline bool KeyMatch(const char *menuKey, int keyval, int modifiers) {
 }
 
 gint SciTEGTK::Key(GdkEventKey *event) {
-	//printf("S-key: %d %x %x %x %x\n",event->keyval, event->state, GDK_SHIFT_MASK, GDK_CONTROL_MASK, GDK_F3);
+	// MODIFAC printf("S-key: %d %x %x %x %x\n",event->keyval, event->state, GDK_SHIFT_MASK, GDK_CONTROL_MASK, GDK_F3);
 	int modifiers = event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK);
 
 	int cmodifiers = // modifier mask for Lua extension
 		(event->state & GDK_SHIFT_MASK   ? SCMOD_SHIFT : 0) |
 		(event->state & GDK_CONTROL_MASK ? SCMOD_CTRL  : 0) |
 		(event->state & GDK_MOD1_MASK    ? SCMOD_ALT   : 0);
-	if (extender && extender->OnKey(event->keyval, cmodifiers))
+	if (extender && extender->OnKey(event->keyval, cmodifiers)) {
+		// MODIFAC printf("a\n");
 		return 1;
+	}
 
 	int commandID = 0;
 	for (int i = 0; kmap[i].msg; i++) {
@@ -2749,14 +2756,17 @@ gint SciTEGTK::Key(GdkEventKey *event) {
 		}
 	}
 	if (!commandID) {
+		// MODIFAC printf("b\n");
 		// Look through language menu
 		for (int j = 0; j < languageItems; j++) {
 			if (KeyMatch(languageMenu[j].menuKey.c_str(), event->keyval, modifiers)) {
+				// MODIFAC printf("d\n");
 				commandID = IDM_LANGUAGE + j;
 			}
 		}
 	}
 	if (commandID) {
+		// MODIFAC printf("e\n");
 		Command(commandID);
 	}
 	if ((commandID == IDM_NEXTFILE) || (commandID == IDM_PREVFILE)) {
@@ -2769,8 +2779,10 @@ gint SciTEGTK::Key(GdkEventKey *event) {
 	for (int tool_i = 0; tool_i < toolMax; ++tool_i) {
 		GtkWidget *item = gtk_item_factory_get_widget_by_action(itemFactory, IDM_TOOLS + tool_i);
 		if (item) {
+			// MODIFAC //printf("f\n");
 			long keycode = reinterpret_cast<long>(gtk_object_get_user_data(GTK_OBJECT(item)));
 			if (keycode && SciTEKeys::MatchKeyCode(keycode, event->keyval, modifiers)) {
+				// MODIFAC printf("cmd_tool: %d\n", IDM_TOOLS + tool_i);
 				SciTEBase::MenuCommand(IDM_TOOLS + tool_i);
 				return 1;
 			}
@@ -2781,6 +2793,7 @@ gint SciTEGTK::Key(GdkEventKey *event) {
 	for (int cut_i = 0; cut_i < shortCutItems; cut_i++) {
 		if (KeyMatch(shortCutItemList[cut_i].menuKey.c_str(), event->keyval, modifiers)) {
 			int commandNum = SciTEBase::GetMenuCommandAsInt(shortCutItemList[cut_i].menuCommand);
+			// MODIFAC printf("cmd_pre: %d\n", commandNum);
 			if (commandNum != -1) {
 				if (commandNum < 2000) {
 					SciTEBase::MenuCommand(commandNum);
@@ -2793,6 +2806,8 @@ gint SciTEGTK::Key(GdkEventKey *event) {
 			}
 		}
 	}
+
+	// MODIFAC printf("z\n");
 
 	return 0;
 }
@@ -3317,6 +3332,11 @@ void SciTEGTK::CreateMenu() {
 	                                      {"/Search/Pre_vious Bookmark", "<shift>F2", menuSig, IDM_BOOKMARK_PREV, 0},
 	                                      {"/Search/Toggle Bookmar_k", "<control>F2", menuSig, IDM_BOOKMARK_TOGGLE, 0},
 	                                      {"/Search/_Clear All Bookmarks", "", menuSig, IDM_BOOKMARK_CLEARALL, 0},
+	                                      {"/Search/sep4", NULL, NULL, 0, "<Separator>"},
+	                                      {"/Search/Find tag", "F9", menuSig, IDM_FINDTAG_ALL, 0},
+	                                      {"/Search/Find tag definition", "F10", menuSig, IDM_FINDTAG_DEF, 0},
+	                                      {"/Search/Find tag declaration", "F11", menuSig, IDM_FINDTAG_DECL, 0},
+	                                      {"/Search/Find tag pattern", "F12", menuSig, IDM_FINDTAG_PATTERN, 0},
 
 	                                      {"/_View", NULL, NULL, 0, "<Branch>"},
 	                                      {"/View/Toggle _current fold", "", menuSig, IDM_EXPAND, 0},
@@ -3342,6 +3362,7 @@ void SciTEGTK::CreateMenu() {
 	                                      {"/Tools/_Compile", NULL, menuSig, IDM_COMPILE, 0},
 	                                      {"/Tools/_Build", NULL, menuSig, IDM_BUILD, 0},
 	                                      {"/Tools/_Go", NULL, menuSig, IDM_GO, 0},
+	                                      {"/Tools/Build _Tags", "<control><shift>T", menuSig, IDM_BUILDTAGS, 0},
 
 	                                      {"/Tools/Tool0", NULL, menuSig, IDM_TOOLS + 0, 0},
 	                                      {"/Tools/Tool1", NULL, menuSig, IDM_TOOLS + 1, 0},
