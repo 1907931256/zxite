@@ -126,7 +126,7 @@ $(PROG): SciTEGTK.o GUIGTK.o FilePath.o SciTEBase.o SciTEBuffers.o SciTEIO.o Str
 	$(AT)$(CC) `$(CONFIGTHREADS)` -rdynamic -Wl,--as-needed -Wl,--version-script lua.vers -DGTK $^ -o $@ $(CONFIGLIB) -ldl -lstdc++
 
 # Automatically generate header dependencies with "make deps"
-include deps.mak
+-include deps.mak
 
 # The two last install commands will fail if Gnome is not installed or is not at $(prefix).
 # This is OK - just means no SciTE in the Gnome Applications menu
