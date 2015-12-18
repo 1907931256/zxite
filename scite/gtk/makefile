@@ -69,6 +69,8 @@ vpath %.cxx ../src
 CFLAGS := -I ../../scintilla/include -I ../src
 CFLAGS += -W -Wall -Wno-char-subscripts -pedantic -DGTK -DSCI_LEXER -DPIXMAP_PATH=\"$(pixmapdir)\" -DSYSCONF_PATH=\"$(SYSCONF_PATH)\"
 
+DEBUG := 1
+
 ifdef DEBUG
 CFLAGS += -DDEBUG -g
 else

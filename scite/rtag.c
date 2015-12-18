@@ -11,16 +11,23 @@ int q = 1;
 #include <stdbool.h>
 #include <assert.h>
 
+#define ESC	"\x1B["
+#define TAB     ESC "40G"
+#define OFF	ESC "0m"
+#define BG_OFF	ESC "0;49m"
+#define RED	ESC "0;31m"
+#define RED2	ESC "1;31m"
+
 #define MMM fprintf(stderr, "__%s__%d__\n", __FUNCTION__, __LINE__);
 #define RRR fprintf(stderr, "__%s__%d__ ->%p\n", __FUNCTION__, __LINE__, __builtin_return_address(0) );
 #define DDD(x) fprintf(stderr, "__%s__%d__ %d\n", __FUNCTION__, __LINE__, (x)) ;
 #define HHH(x) fprintf(stderr, "__%s__%d__ %x\n", __FUNCTION__, __LINE__, (unsigned long) (x)) ;
 
 
-#define MAX(a,b) ({ __typeof__(a) _a=(a); __typeof__(b) _b=(b); _a > _b ? _a : _b; })
-#define MIN(a,b) ({ __typeof__(a) _a=(a); __typeof__(b) _b=(b); _a < _b ? _a : _b; })
+//#define MAX(a,b) ({ __typeof__(a) _a=(a); __typeof__(b) _b=(b); _a > _b ? _a : _b; })
+//#define MIN(a,b) ({ __typeof__(a) _a=(a); __typeof__(b) _b=(b); _a < _b ? _a : _b; })
 
-//#define BUF_LEN 512
+#define BUF_LEN 1024
 
 struct buf_cache {
 	int fd;
@@ -311,10 +318,69 @@ bs_exit:
 }
 
 
+void dump_tag (char *tag)
+{
+	char *s = tag;
+	char *filename = NULL;
+	long int line = 0;
+	char *pattern = NULL;
+	char kind = '\0';
 
-struct titi {
-	int toto;
-};
+	if ((s = strchr(s, '\t')) == NULL)
+		goto err;
+	filename = ++s;
+	if ((s = strchr(s, '\t')) == NULL)
+		goto err;
+	s[0] = '\0';
+	if (s[1] != '/' || s[2] != '^') {
+		char *end;
+		line = strtol(s + 1, &end, 10);
+		if (line < 1)
+			goto err;
+		s = end;
+	} else {
+		s += 3;
+		pattern = ++s;
+		while (s[0] != '$' || s[1] != '/')
+			if (!*s++)
+				goto err;
+		s[0] = '\0';
+		s += 2;
+	}
+	if (*s) {
+		if (s[0] != ';' || s[1] != '"')
+			goto err;
+		s += 2;
+
+		do {
+			if (*s++ != '\t')
+				goto err;
+			char *ext_val = s;
+			char *ext_name = s;
+			while (*s && *s != '\t')
+				if (*s++ == ':')
+					ext_val = s;
+			if (ext_val == ext_name || !strncmp(ext_name, "kind", ext_val - 1 - ext_name)) {
+				if (s - ext_val != 1)
+					goto err;
+				kind = *ext_val;
+				printf("[kind]=%c  ", kind);
+			} else if (!strncmp(ext_name, "line", ext_val - 1 - ext_name)) {
+				line = strtol(ext_val, &ext_val, 10);
+				if (line < 1 || ext_val != s)
+					goto err;
+			} else if (ext_val < s) {
+				printf("[%.*s]=<%.*s>  ", ext_val - 1 - ext_name, ext_name, s - ext_val, ext_val);
+			}
+		} while (*s);
+		printf("[line]=%d  [f]=<%s>  [p]=<%s>\n", line, filename, pattern);
+	}
+
+	return;
+err:
+	printf(RED "Unable to parse %s\n" OFF, tag);
+}
+
 
 
 void test(void)
@@ -361,7 +427,7 @@ void test(void)
 		}
 
 		//--------------
-		if (q) printf("==== Search: %s... ", sym);
+		if (q) printf("==== Search: <%s>  ", sym);
 		char **res = bs(sym);
 		//printf("== done == ");
 		int i = 0;
@@ -375,14 +441,19 @@ void test(void)
 			if (v) printf("C\n");
 			i++;
 		}
-		if (res[i])
-			{ if (q) printf("found!\n"); }
+		if (res[i]) {
+			if (q) {
+				//printf("found: <%s>\n", res[i]);
+				dump_tag(res[i]);
+			}
+		}
 		else
 			assert(0);
 		i = 0;
 		while(res[i])
 			free(res[i++]);
 		free(res);
+		goto next_sym;
 		//--------------
 
 		sym[tab - p] = 'z';
@@ -413,6 +484,7 @@ void test(void)
 	free(buf);
 }
 
+
 int main (int argc, char *argv[])
 {
 	if (argc == 1)
@@ -426,6 +498,7 @@ int main (int argc, char *argv[])
 		int i = 0;
 		while(res && res[i]) {
 			printf("%s\n", res[i]);
+			dump_tag(res[i]);
 			free(res[i++]);
 		}
 		free(res);

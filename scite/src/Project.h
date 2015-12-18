@@ -4,7 +4,7 @@
 
 
 bool glob_check(const char *glob);
-bool glob_match(const char *str, const char *glob);
+bool glob_match(const char *str, const char *glob, int nocase);
 
 
 
@@ -24,6 +24,18 @@ struct LabelPath {
 	bool operator==(const LabelPath &other) const;
 };
 
+
+struct CTag {
+	SString name;
+	SString file;
+	SString pattern;
+	int line;
+	SString kind;
+	std::list<SString> ext;
+
+	CTag(SString _name, SString _file, SString _pattern, int _line, SString _kind, std::list<SString> _ext) :
+		name(_name), file(_file), pattern(_pattern), line(_line), kind(_kind), ext(_ext) {}
+};
 
 class Project {
 
@@ -52,7 +64,6 @@ public:
 
 
 	void Populate();
-	SString BuildTags();
-
-
+	int BuildTags(SString &cmd, SString &dir);
+	std::vector<CTag> FindTag(SString tag, int cmdID);
 };

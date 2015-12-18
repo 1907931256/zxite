@@ -393,8 +393,8 @@ protected:
 	static void QuickOpenResponse(GtkWidget *w, gint resp, SciTEGTK *scitew);
 	int QuickOpenFill(GtkListStore *store, GUI::gui_string glob);
 	static gboolean QuickOpenKeyList(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
-	static gboolean QuickOpenRelease(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
-	static gboolean QuickOpenPress(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
+	static gboolean QuickOpenEntry(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
+	//static gboolean QuickOpenPress(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
 
 	virtual void SetMenuItem(int menuNumber, int position, int itemID,
 	                         const char *text, const char *mnemonic = 0);
@@ -1145,7 +1145,7 @@ int SciTEGTK::QuickOpenFill(GtkListStore *store, GUI::gui_string glob) {
 	for (std::vector<LabelPath>::iterator it = project.files.begin();  it != project.files.end(); it++)
 	{
 		GtkTreeIter iter;
-		if (glob.empty() || glob_match(it->path.c_str(), glob.c_str())) {
+		if (glob.empty() || glob_match(it->path.c_str(), glob.c_str(), true)) {
 			gtk_list_store_append(store, &iter);
 			gtk_list_store_set(store, &iter, 0, it->path.c_str(), -1);
 			cnt++;
@@ -1191,7 +1191,7 @@ void SciTEGTK::QuickOpenResponse(GtkWidget *w, gint resp, SciTEGTK *scitew) {
 	gtk_widget_destroy(w);
 }
 
-
+#if 0
 gboolean SciTEGTK::QuickOpenPress(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
 
 	(void) scitew;
@@ -1256,6 +1256,7 @@ gboolean SciTEGTK::QuickOpenPress(GtkWidget *w, GdkEventKey *event, SciTEGTK *sc
 
 	return FALSE;
 }
+#endif
 
 gboolean SciTEGTK::QuickOpenKeyList(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
 
@@ -1272,51 +1273,68 @@ gboolean SciTEGTK::QuickOpenKeyList(GtkWidget *w, GdkEventKey *event, SciTEGTK *
 }
 
 
-gboolean SciTEGTK::QuickOpenRelease(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
+gboolean SciTEGTK::QuickOpenEntry(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
 
-	GtkWidget *dialog = gtk_widget_get_parent(gtk_widget_get_parent(w));
+	GtkDialog *dialog = GTK_DIALOG(gtk_widget_get_parent(gtk_widget_get_parent(w)));
+	GtkEntry *entry = GTK_ENTRY(w);
+	GList *children = gtk_container_get_children(GTK_CONTAINER((dialog)->vbox));
+	GtkTreeView *list = GTK_TREE_VIEW(gtk_bin_get_child(GTK_BIN(children->next->data)));
+	g_list_free(children);
+
+	assert(GTK_IS_TREE_VIEW(list));
+	assert(GTK_IS_ENTRY(entry));
+	assert(GTK_IS_DIALOG(dialog));
+
 	if (event->keyval == GDK_Escape) {
-		//gtk_signal_emit_stop_by_name(GTK_OBJECT(w), "key-press-event");
-		gtk_widget_destroy(dialog);
+		gtk_widget_destroy(GTK_WIDGET(dialog));
 		return TRUE;
 
 	} else if (event->keyval == GDK_Return || event->keyval == GDK_KP_Enter || event->keyval == GDK_ISO_Enter) {
-
-		gtk_dialog_response(GTK_DIALOG(dialog), 2);
+		gtk_dialog_response(dialog, 2);
 		return TRUE;
 
 	} else if (event->keyval == GDK_Up || event->keyval == GDK_Down) {
 
-		return FALSE;
+		gtk_widget_grab_focus (GTK_WIDGET(list));
+
+		GtkTreeModel *model = GTK_TREE_MODEL(gtk_tree_view_get_model(list));
+		GtkTreeIter iter;
+		gboolean valid;
+
+		if (event->keyval == GDK_Up) {
+			gint count = gtk_tree_model_iter_n_children(model, NULL);
+			valid = gtk_tree_model_iter_nth_child(model, &iter, NULL, count - 1);
+		} else {
+			valid = gtk_tree_model_get_iter_first(model, &iter);
+		}
+		assert(valid);
+
+		GtkTreePath *path = gtk_tree_model_get_path(model, &iter);
+		gtk_tree_view_set_cursor(list, path, NULL, FALSE);
+		gtk_tree_path_free (path);
+		return TRUE;
 
 	} else {
-		gboolean ret = FALSE;
-
 		//std::cout <<"KEY: " <<(int)event->keyval <<" [[" <<(char) event->keyval <<"]] : <<"  <<gtk_entry_get_text(GTK_ENTRY(w)) <<">>  (" <<ret  <<")\n";
-
+		gboolean ret = FALSE;
 		GUI::gui_string glob;
 
-		if (*gtk_entry_get_text(GTK_ENTRY(w)) && glob_check(gtk_entry_get_text(GTK_ENTRY(w)))) {
-			if (*gtk_entry_get_text(GTK_ENTRY(w)) != '*')
+		if (*gtk_entry_get_text(entry) && glob_check(gtk_entry_get_text(entry))) {
+			if (*gtk_entry_get_text(entry) != '*')
 				glob.assign("**");
 
-			glob.append(gtk_entry_get_text(GTK_ENTRY(w)));
+			glob.append(gtk_entry_get_text(entry));
 
 			if (glob[glob.size()-1] != '*')
 				glob.append("**");
 		}
 
-		GtkWidget *box = gtk_widget_get_parent(w);
-		GList *children = gtk_container_get_children(GTK_CONTAINER(box));
-		GtkWidget *list = gtk_bin_get_child(GTK_BIN(children->next->data));
-		g_list_free(children);
-
 		GtkListStore *store = (GtkListStore*) gtk_tree_view_get_model(GTK_TREE_VIEW(list));
 
 		int cnt = scitew->QuickOpenFill(store, glob);
 
-		gtk_dialog_set_response_sensitive(GTK_DIALOG(dialog), 1, cnt);
-		gtk_dialog_set_response_sensitive(GTK_DIALOG(dialog), 2, cnt);
+		gtk_dialog_set_response_sensitive(dialog, 1, cnt);
+		gtk_dialog_set_response_sensitive(dialog, 2, cnt);
 
 		if (gtk_tree_selection_count_selected_rows(gtk_tree_view_get_selection(GTK_TREE_VIEW(list))) == 0) {
 			GtkTreeIter first;
@@ -1352,8 +1370,8 @@ void SciTEGTK::QuickOpen() {
 	gtk_box_pack_start(GTK_BOX(GTK_DIALOG(dialog)->vbox), entry, FALSE, FALSE, 0);
 
 	//g_signal_connect(toggle, "key-press-event", G_CALLBACK(QuickOpenRelease), NULL);
-	//gtk_signal_connect(GTK_OBJECT(entry), "key-press-event", GtkSignalFunc(QuickOpenPress), this);
-	gtk_signal_connect(GTK_OBJECT(entry), "key-release-event", GtkSignalFunc(QuickOpenRelease), this);
+	gtk_signal_connect(GTK_OBJECT(entry), "key-press-event", GtkSignalFunc(QuickOpenEntry), this);
+	gtk_signal_connect(GTK_OBJECT(entry), "key-release-event", GtkSignalFunc(QuickOpenEntry), this);
 
 
 	GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);

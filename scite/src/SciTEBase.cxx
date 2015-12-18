@@ -4000,31 +4000,65 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 		break;
 
 	case IDM_BUILDTAGS: {
-			SString cmd = project.BuildTags();
-			if (cmd.length()) {
-				AddCommand(cmd, ".", jobCLI);
+			SString cmd, dir;
+			if (project.BuildTags(cmd, dir) == 0) {
+				AddCommand(cmd, dir, jobCLI);
 				Execute();
 			}
 		}
 		break;
 
-	case IDM_FINDTAG_ALL: {
-			std::cout <<"A\n";
+	case IDM_FINDTAG_ALL:
+	case IDM_FINDTAG_DECL:
+	case IDM_FINDTAG_DEF:
+		{
+			SString sel = SelectionExtend(&SciTEBase::iswordcharforsel);
+			if (!sel.length())
+				return;
 
+			std::vector<CTag> vector = project.FindTag(sel, cmdID);
+			if (vector.size() == 1) {
+				Open(project.basePath + vector.front().file.c_str(), ofNone);
+				GotoLineEnsureVisible(vector.front().line - 1);
+
+			} else if (vector.size()) {
+				MakeOutputVisible();
+				char buf[256];
+				unsigned len = snprintf(buf, sizeof(buf), "\n>Multiple CTag results for symbol \"%s\":\n", sel.c_str());
+				OutputAppendStringSynchronised(buf, len);
+
+				unsigned maxlen = 0;
+				for (std::vector<CTag>::iterator it = vector.begin(); it != vector.end(); it++)
+					if (maxlen < it->file.length())
+						maxlen = it->file.length();
+				for (std::vector<CTag>::iterator it = vector.begin(); it != vector.end(); it++) {
+					len = snprintf(buf, sizeof(buf), "%s:%d: ", it->file.c_str(), it->line);
+					if (sizeof(buf) < len)
+						len = sizeof(buf) - 1;
+					while (len < sizeof(buf) && len < maxlen + 8)
+						buf[len++] = ' ';
+					wOutput.Send(SCI_APPENDTEXT, len, reinterpret_cast<sptr_t>(buf));
+					wOutput.Send(SCI_GOTOPOS, maxlen + 8);
+					len = snprintf(buf, sizeof(buf), "%12s", it->kind.c_str());
+					if (sizeof(buf) < len)
+						len = sizeof(buf) - 1;
+					wOutput.Send(SCI_APPENDTEXT, len, reinterpret_cast<sptr_t>(buf));
+					while (it->ext.size()) {
+						SString field(it->ext.front());
+						len = snprintf(buf, sizeof(buf), "  %s", field.c_str());
+						if (sizeof(buf) < len)
+							len = sizeof(buf) - 1;
+						wOutput.Send(SCI_APPENDTEXT, len, reinterpret_cast<sptr_t>(buf));
+						it->ext.pop_front();
+					}
+					OutputAppendStringSynchronised("\n", 1);
+				}
+			}
 		}
 		break;
-	case IDM_FINDTAG_DEF: {
-			std::cout <<"B\n";
 
-		}
-		break;
-	case IDM_FINDTAG_DECL: {
-			std::cout <<"C\n";
-
-		}
-		break;
 	case IDM_FINDTAG_PATTERN: {
-			std::cout <<"D\n";
+			std::cerr <<"Not implemented\n";
 
 		}
 		break;
@@ -5036,6 +5070,10 @@ bool SciTEBase::ProcessCommandLine(GUI::gui_string &args, int phase) {
 			} else if ((tolower(arg[0]) == 'p') && (arg[1] == 0)) {
 				performPrint = true;
 			} else if (GUI::gui_string(arg) == GUI_TEXT("grep")) {
+				if (wlArgs.size() - i != 4 || wlArgs[i+1].length() != 4) {
+					std::cerr <<"usage:scite -grep xxxx \"paths\" \"pattern\"" <<std::endl;
+					exit(0);
+				}
 				// wlArgs[i+1] will be options in future
 				GrepFlags gf = grepStdOut;
 				if (wlArgs[i+1][0] == 'w')
@@ -5079,13 +5117,10 @@ bool SciTEBase::ProcessCommandLine(GUI::gui_string &args, int phase) {
 
 			InitialiseBuffers();
 
-			if (EndsWith(arg, GUI_TEXT(".zte"))) {
+			if (EndsWith(arg, GUI_TEXT(".zte")) || EndsWith(arg, GUI_TEXT(".tct"))) {
 
 				if (!project.open(FilePath(arg).AbsolutePath())) {
 					WindowMessageBox(wSciTE, project.msg, MB_OK | MB_ICONWARNING);
-
-
-
 				}
 
 				UpdateTree();
@@ -5095,6 +5130,11 @@ bool SciTEBase::ProcessCommandLine(GUI::gui_string &args, int phase) {
 
 				Open(arg, ofNone);
 
+				SString cmd, dir;
+				if (project.BuildTags(cmd, dir) == 0) {
+					AddCommand(cmd, dir, jobCLI);
+					Execute();
+				}
 			} else {
 
 				if (props.GetInt("save.recent"))
