@@ -44,13 +44,7 @@ CONFIGFLAGS   := $(shell pkg-config --cflags gtk+-2.0)
 CONFIGLIB     := $(shell pkg-config --libs gtk+-2.0 gthread-2.0 gmodule-2.0)
 CONFIGTHREADS :=
 gnomeprefix   := $(shell pkg-config --variable=prefix gtk+-2.0 2>/dev/null)
-ifndef prefix
-ifdef gnomeprefix
-  prefix := $(gnomeprefix)
-else
-  prefix := /usr/local
-endif
-endif
+prefix := /usr/local
 datadir      := $(prefix)/share
 pixmapdir    := $(datadir)/pixmaps
 bindir       := $(prefix)/bin
@@ -142,7 +136,7 @@ install:
 
 	$(INSTALL) -m 755 $(PROG) $(DESTDIR)$(bindir)
 
-	for files in ../properties/*.properties ../doc/TziteEIco.png ../doc/PrintHi.png; \
+	for files in ../properties/*.properties ../doc/TziteIco.png ; \
 	do \
 		$(INSTALL) -m 644 $$files $(DESTDIR)$(SYSCONF_PATH); \
 	done
