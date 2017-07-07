@@ -1,9 +1,9 @@
 #!/bin/sh
 
 if [ x$1 != xgen ] ; then
-	echo "Tcite project file generator:"
+	echo "Tzite project file generator:"
 	echo
-	echo "  Must be called in project root folder. Will create prj/<name>.tct."
+	echo "  Must be called in project root folder. Will create prj/<name>.tze."
 	echo "  If no name given, take the current folder name."
 	echo
 	echo "  Usage: $0 gen [prj_name]"
@@ -23,7 +23,7 @@ if [ -d prj ] ; then
 fi
 
 mkdir prj
-prj_file=prj/$prj_name.tct
+prj_file=prj/$prj_name.tze
 
 touch $prj_file
 

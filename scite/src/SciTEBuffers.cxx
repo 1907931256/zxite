@@ -70,7 +70,7 @@
 #include "Project.h"
 #include "SciTEBase.h"
 
-const GUI::gui_char defaultSessionFileName[] = GUI_TEXT("SciTE.session");
+const GUI::gui_char defaultSessionFileName[] = GUI_TEXT("Tzite.session");
 
 BufferList::BufferList() : current(0), stackcurrent(0), stack(0), buffers(0), size(0), length(0), initialised(false) {}
 
@@ -484,7 +484,7 @@ void SciTEBase::SaveSessionFile(const GUI::gui_char *sessionName) {
 	if (!sessionFile)
 		return;
 
-	fprintf(sessionFile, "# SciTE session file\n");
+	fprintf(sessionFile, "# Tzite session file\n");
 
 	if (defaultSession && props.GetInt("save.position")) {
 		int top, left, width, height, maximize;

@@ -69,12 +69,12 @@
 #include "Utf8_16.h"
 
 #ifdef unix
-const GUI::gui_char propUserFileName[] = GUI_TEXT(".SciTEUser.properties");
+const GUI::gui_char propUserFileName[] = GUI_TEXT(".TziteUser.properties");
 #else
 // Windows
-const GUI::gui_char propUserFileName[] = GUI_TEXT("SciTEUser.properties");
+const GUI::gui_char propUserFileName[] = GUI_TEXT("TziteUser.properties");
 #endif
-const GUI::gui_char propGlobalFileName[] = GUI_TEXT("SciTEGlobal.properties");
+const GUI::gui_char propGlobalFileName[] = GUI_TEXT("TziteGlobal.properties");
 const GUI::gui_char propAbbrevFileName[] = GUI_TEXT("abbrev.properties");
 
 #define PROPERTIES_EXTENSION	".properties"
@@ -627,7 +627,7 @@ void SciTEBase::CheckReload() {
 						          filePath.AsInternal());
 					} else {
 						msg = LocaliseMessage(
-						          "The file '^0' has been modified outside SciTE. Should it be reloaded?",
+						          "The file '^0' has been modified outside Tzite. Should it be reloaded?",
 						          FileNameExt().AsInternal());
 					}
 					int decision = WindowMessageBox(wSciTE, msg, MB_YESNO);
@@ -862,7 +862,7 @@ bool SciTEBase::Save() {
 			time_t newModTime = filePath.ModifiedTime();
 			if ((newModTime != 0) && (CurrentBuffer()->fileModTime != 0) &&
 				(newModTime != CurrentBuffer()->fileModTime)) {
-				msg = LocaliseMessage("The file '^0' has been modified outside SciTE. Should it be saved?",
+				msg = LocaliseMessage("The file '^0' has been modified outside Tzite. Should it be saved?",
 					filePath.AsInternal());
 				decision = WindowMessageBox(wSciTE, msg, MB_YESNO | MB_ICONWARNING);
 				if (decision == IDNO) {

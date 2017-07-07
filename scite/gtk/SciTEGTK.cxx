@@ -63,7 +63,7 @@
 
 #define MB_ABOUTBOX	0x100000L
 
-const char appName[] = "SciTE";
+const char appName[] = "Tzite";
 
 static GtkWidget *PWidget(GUI::Window &w) {
 	return reinterpret_cast<GtkWidget *>(w.GetID());
@@ -688,7 +688,7 @@ GdkPixbuf *SciTEGTK::CreatePixbuf(const char *filename) {
 }
 
 FilePath SciTEGTK::GetDefaultDirectory() {
-	const char *where = getenv("SciTE_HOME");
+	const char *where = getenv("TZITE_HOME");
 #ifdef SYSCONF_PATH
 	if (!where) {
 		where = SYSCONF_PATH;
@@ -706,7 +706,7 @@ FilePath SciTEGTK::GetDefaultDirectory() {
 }
 
 FilePath SciTEGTK::GetSciteDefaultHome() {
-	const char *where = getenv("SciTE_HOME");
+	const char *where = getenv("TZITE_HOME");
 #ifdef SYSCONF_PATH
 	if (!where) {
 		where = SYSCONF_PATH;
@@ -724,7 +724,7 @@ FilePath SciTEGTK::GetSciteDefaultHome() {
 }
 
 FilePath SciTEGTK::GetSciteUserHome() {
-	char *where = getenv("SciTE_HOME");
+	char *where = getenv("TZITE_HOME");
 	if (!where) {
 		where = getenv("HOME");
 	}
@@ -2622,7 +2622,7 @@ int SciTEGTK::WindowMessageBox(GUI::Window &w, const GUI::gui_string &msg, int s
 			                   explanation, TRUE, TRUE, 0);
 			gtk_widget_set_usize(GTK_WIDGET(explanation), 480, 380);
 			gtk_widget_show_all(explanation);
-			SetAboutMessage(scExplanation, "SciTE");
+			SetAboutMessage(scExplanation, "Tzite");
 		} else {
 			GtkWidget *label = gtk_label_new(sMsg.c_str());
 			gtk_misc_set_padding(GTK_MISC(label), 10, 10);
@@ -2657,7 +2657,7 @@ void SciTEGTK::FindMessageBox(const SString &msg, const SString *findItem) {
 }
 
 void SciTEGTK::AboutDialog() {
-	WindowMessageBox(wSciTE, GUI::gui_string("SciTE\nby Neil Hodgson neilh@scintilla.org ."),
+	WindowMessageBox(wSciTE, GUI::gui_string("Tzite\nby Neil Hodgson neilh@scintilla.org ."),
 	                 MB_OK | MB_ABOUTBOX);
 }
 
@@ -3498,8 +3498,8 @@ void SciTEGTK::CreateMenu() {
 	SciTEItemFactoryEntry menuItemsHelp[] = {
 	                                          {"/_Help", NULL, NULL, 0, "<Branch>"},
 	                                          {"/Help/_Help", "F1", menuSig, IDM_HELP, 0},
-	                                          {"/Help/_SciTE Help", "", menuSig, IDM_HELP_SCITE, 0},
-	                                          {"/Help/_About SciTE", "", menuSig, IDM_ABOUT, 0},
+	                                          {"/Help/_Tzite Help", "", menuSig, IDM_HELP_SCITE, 0},
+	                                          {"/Help/_About Tzite", "", menuSig, IDM_ABOUT, 0},
 	                                      };
 
 	accelGroup = gtk_accel_group_new();
@@ -3905,7 +3905,7 @@ bool SciTEGTK::CheckForRunningInstance(int argc, char *argv[]) {
 		return false; // Couldn't open the directory
 	}
 
-	GPatternSpec *pattern = g_pattern_spec_new("SciTE.*.in");
+	GPatternSpec *pattern = g_pattern_spec_new("Tzite.*.in");
 
 	char *pipeFileName = NULL;
 	const char *filename;

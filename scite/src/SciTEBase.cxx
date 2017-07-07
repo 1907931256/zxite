@@ -5117,7 +5117,7 @@ bool SciTEBase::ProcessCommandLine(GUI::gui_string &args, int phase) {
 
 			InitialiseBuffers();
 
-			if (EndsWith(arg, GUI_TEXT(".zte")) || EndsWith(arg, GUI_TEXT(".tct"))) {
+			if (EndsWith(arg, GUI_TEXT(".tze"))) {
 
 				if (!project.open(FilePath(arg).AbsolutePath())) {
 					WindowMessageBox(wSciTE, project.msg, MB_OK | MB_ICONWARNING);

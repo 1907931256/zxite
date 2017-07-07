@@ -112,8 +112,8 @@ void SciTEBase::SetLanguageMenu() {
 	}
 }
 
-const GUI::gui_char propLocalFileName[] = GUI_TEXT("SciTE.properties");
-const GUI::gui_char propDirectoryFileName[] = GUI_TEXT("SciTEDirectory.properties");
+const GUI::gui_char propLocalFileName[] = GUI_TEXT("Tzite.properties");
+const GUI::gui_char propDirectoryFileName[] = GUI_TEXT("TziteDirectory.properties");
 
 /**
 Read global and user properties files.
