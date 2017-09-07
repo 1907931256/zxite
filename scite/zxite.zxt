@@ -1,13 +1,13 @@
 
 
-proj.name=Tzite
+proj.name=Zxite
 proj.path=.
 
 
 #proj.include.++= test
 
-proj.include.++= tzite/inc | src/*.h
-proj.include.++= tzite/src | src/*.cxx; src/*.c
+proj.include.++= zxite/inc | src/*.h
+proj.include.++= zxite/src | src/*.cxx; src/*.c
 proj.include.++= gtk/inc | gtk/*.h
 proj.include.++= gtk/src | gtk/*.cxx
 
