@@ -1,4 +1,4 @@
-# Make file for Tzite on Linux or compatible OS (based on SciTE)
+# Make file for Zxite on Linux or compatible OS (based on SciTE)
 # Copyright 1998-2010 by Neil Hodgson <neilh@scintilla.org>
 # The License.txt file describes the conditions under which this software may be distributed.
 # This makefile assumes GCC 4.x is used and changes will be needed to use other compilers.
@@ -48,10 +48,10 @@ prefix := /usr/local
 datadir      := $(prefix)/share
 pixmapdir    := $(datadir)/pixmaps
 bindir       := $(prefix)/bin
-SYSCONF_PATH := $(prefix)/share/tzite
+SYSCONF_PATH := $(prefix)/share/zxite
 
 INSTALL := install
-PROG    := ../bin/tzite
+PROG    := ../bin/zxite
 
 all: $(PROG)
 
@@ -114,14 +114,14 @@ deps:
 # make should be run in ../../scintilla/gtk to compile all the lexers.
 COMPLIB := ../../scintilla/bin/scintilla.a
 
-OBJ_TZE := SciTEGTK.o GUIGTK.o FilePath.o SciTEBase.o SciTEBuffers.o SciTEIO.o StringList.o Exporters.o \
+OBJ_ZXT := SciTEGTK.o GUIGTK.o FilePath.o SciTEBase.o SciTEBuffers.o SciTEIO.o StringList.o Exporters.o \
     PropSetFile.o MultiplexExtension.o DirectorExtension.o SciTEProps.o StyleWriter.o Utf8_16.o \
     JobQueue.o GTKMutex.o IFaceTable.o Project.o LuaExtension.o
 
 
-OBJ_TZE_BIN=$(addprefix ../bin/, $(OBJ_TZE))
+OBJ_ZXT_BIN=$(addprefix ../bin/, $(OBJ_ZXT))
 
-$(PROG):  $(OBJ_TZE_BIN) $(COMPLIB) $(LUA_OBJ_BIN)
+$(PROG):  $(OBJ_ZXT_BIN) $(COMPLIB) $(LUA_OBJ_BIN)
 	@echo $(ANSI_WHITE)"[LD]"$(ANSI_OFF) $@
 	$(AT)$(CC) `$(CONFIGTHREADS)` -rdynamic -Wl,--as-needed -Wl,--version-script lua.vers -DGTK $^ -o $@ $(CONFIGLIB) -ldl -lstdc++
 
@@ -129,27 +129,27 @@ $(PROG):  $(OBJ_TZE_BIN) $(COMPLIB) $(LUA_OBJ_BIN)
 -include deps.mak
 
 # The two last install commands will fail if Gnome is not installed or is not at $(prefix).
-# This is OK - just means no Tzite in the Gnome Applications menu
-# Dead:	install -D TziteGTK.properties $(SYSCONF_PATH)/TziteGlobal.properties
+# This is OK - just means no Zxite in the Gnome Applications menu
+# Dead:	install -D ZxiteGTK.properties $(SYSCONF_PATH)/ZxiteGlobal.properties
 install:
 	$(INSTALL) -m 755 -d $(DESTDIR)$(bindir) $(DESTDIR)$(SYSCONF_PATH)
 
 	$(INSTALL) -m 755 $(PROG) $(DESTDIR)$(bindir)
 
-	for files in ../properties/*.properties ../doc/TziteIco.png ; \
+	for files in ../properties/*.properties ../doc/ZxiteIco.png ; \
 	do \
 		$(INSTALL) -m 644 $$files $(DESTDIR)$(SYSCONF_PATH); \
 	done
 
 ifdef gnomeprefix
-	$(INSTALL) -m 755 -D Tzite.desktop $(DESTDIR)$(datadir)/applications/Tzite.desktop
-	$(INSTALL) -m 644 -D Tzite48M.png $(DESTDIR)$(pixmapdir)/Tzite48M.png
+	$(INSTALL) -m 755 -D Zxite.desktop $(DESTDIR)$(datadir)/applications/Zxite.desktop
+	$(INSTALL) -m 644 -D Zxite48M.png $(DESTDIR)$(pixmapdir)/Zxite48M.png
 endif
 
 uninstall:
-	rm -f $(DESTDIR)$(bindir)/Tzite
+	rm -f $(DESTDIR)$(bindir)/Zxite
 	rm -rf $(DESTDIR)$(SYSCONF_PATH)
 ifdef gnomeprefix
-	rm -f $(DESTDIR)$(datadir)/applications/Tzite.desktop
-	rm -f $(DESTDIR)$(pixmapdir)/Tzite48M.png
+	rm -f $(DESTDIR)$(datadir)/applications/Zxite.desktop
+	rm -f $(DESTDIR)$(pixmapdir)/Zxite48M.png
 endif

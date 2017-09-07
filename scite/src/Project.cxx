@@ -517,7 +517,7 @@ bool LabelPath::operator<(const LabelPath &other) const
 bool LabelPath::operator==(const LabelPath &other) const
 {
 	#if 0
-	if (path == "tzite.tze" || other.path == "tzite.tze")
+	if (path == "zxite.zxt" || other.path == "zxite.zxt")
 	printf(" ~~~~~ <%s[%lu] == %s[%lu] ?>   <%s[%lu] == %s[%lu] ?>   -> %x / %x => %x ~~~~~ \n",
 		label.c_str(), label.size(), other.label.c_str(), other.label.size(),
 		path.c_str(), path.size(), other.path.c_str(), other.path.size(),

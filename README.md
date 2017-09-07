@@ -1,4 +1,4 @@
-tzite
+Zxite
 ====
 
-Tzite editor, fork of SCite
+Zxite editor, fork of SCite

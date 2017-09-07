@@ -16,10 +16,10 @@ proj.include.++= scintilla/src | ../scintilla/src/*.cxx
 proj.include.++= scintilla/gtk/inc |../scintilla/gtk/*.h
 proj.include.++= scintilla/gtk/src |../scintilla/gtk/*.cxx; ../scintilla/gtk/*.c
 
-proj.include.++= | tzite.tze
+proj.include.++= | zxite.zxt
 proj.include.++= | gtk/makefile
 
-#proj.tags.files_file=TZE_PATH/files.tag
-#proj.tags.symbols_file=TZE_PATH/symbols.tag
+#proj.tags.files_file=ZXT_PATH/files.tag
+#proj.tags.symbols_file=ZXT_PATH/symbols.tag
 #proj.tags.files_auto=1
 #proj.tags.cmd=ctags --c-kinds=+p -R --fields=+n -L $(proj.tags.files_file) -f $(proj.tags.symbols_file)
