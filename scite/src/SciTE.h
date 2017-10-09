@@ -175,38 +175,39 @@
 
 #define IDM_TOGGLETREE		466
 #define IDM_TOGGLEMODULE	467
-#define IDM_OPENQUICK	468
+#define IDM_OPENQUICK	        468
 
 //#define IDM_SELECTIONMARGIN	490
 //#define IDM_BUFFEREDDRAW	491
-//#define IDM_USEPALETTE		492
+//#define IDM_USEPALETTE	492
 
 // Buffers
-#define IDM_PREVFILE			501
-#define IDM_NEXTFILE			502
-#define IDM_CLOSEALL			503
-#define IDM_SAVEALL			504
+#define IDM_PREVFILE		501
+#define IDM_NEXTFILE		502
+#define IDM_CLOSEALL		503
+#define IDM_SAVEALL		504
 #define IDM_BUFFERSEP		505
-#define IDM_PREVFILESTACK			506
-#define IDM_NEXTFILESTACK			507
-#define IDM_MOVETABRIGHT			508
-#define IDM_MOVETABLEFT			509
-#define IDM_FILEBACK			510
-#define IDM_FILEFWD			511
+#define IDM_PREVFILESTACK	506
+#define IDM_NEXTFILESTACK	507
+#define IDM_RELFILESTACK	508
+#define IDM_MOVETABRIGHT	509
+#define IDM_MOVETABLEFT		510
+#define IDM_FILEBACK		511
+#define IDM_FILEFWD		512
 
 // Help
-#define IDM_HELP			901
-#define IDM_ABOUT			902
+#define IDM_HELP		901
+#define IDM_ABOUT		902
 #define IDM_HELP_SCITE		903
 
 // Windows specific windowing options
-#define IDM_ONTOP			960
+#define IDM_ONTOP		960
 #define IDM_FULLSCREEN		961
 #define IDC_TABCLOSE		962
 #define IDC_SHIFTTAB		963
 
 // Dialog control IDs
-#define IDGOLINE			220
+#define IDGOLINE		220
 #define IDABOUTSCINTILLA	221
 #define IDFINDWHAT			222
 #define IDFILES				223

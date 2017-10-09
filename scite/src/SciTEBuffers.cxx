@@ -161,13 +161,13 @@ void BufferList::PopStack() {
 
 int BufferList::StackNext() {
 	if (++stackcurrent >= length)
-		stackcurrent = 0;
+		stackcurrent--;
 	return stack[stackcurrent];
 }
 
 int BufferList::StackPrev() {
 	if (--stackcurrent < 0)
-		stackcurrent = length - 1;
+		stackcurrent = 0;
 	return stack[stackcurrent];
 }
 
@@ -207,9 +207,11 @@ void BufferList::ShiftTo(int indexFrom, int indexTo) {
 		if (stack[i] == indexFrom) {
 			stack[i] = indexTo;
 		} else if (step == 1) {
-			if (indexFrom < stack[i] && stack[i] <= indexTo) stack[i] -= step;
+			if (indexFrom < stack[i] && stack[i] <= indexTo)
+				stack[i] -= step;
 		} else {
-			if (indexFrom > stack[i] && stack[i] >= indexTo) stack[i] -= step;
+			if (indexFrom > stack[i] && stack[i] >= indexTo)
+				stack[i] -= step;
 		}
 	}
 }

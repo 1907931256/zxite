@@ -106,8 +106,6 @@ bool glob_match(const char *str, const char *glob, int nocase) {
 	const unsigned char *g = (const unsigned char *)glob;
 	const unsigned char *s0 = (const unsigned char *)s;
 
-	//std::cerr <<"GM: <" <<str <<"> <" <<glob <<"\n";
-
 	for (;;) {
 		if (*g == '*') {
 			char sep = SEP;
@@ -584,7 +582,7 @@ bool Project::open(FilePath file)
 
 	name = propFile.Get("proj.name");
 	if (!name.size()) {
-		msg.assign(GUI_TEXT("Cannot find project name in ")) + file.AsInternal();
+		msg.assign(GUI_TEXT("Cannot find project name in ")) + file.AsInternal(); // BUG????
 		return false;
 	}
 
@@ -637,7 +635,7 @@ bool Project::close()
 }
 
 
-void Project::FillFiles(SString label, FilePath dir, SString glob, bool recursive) {
+void Project::FillFiles(SString label, FilePath dir, SString glob, bool recursive, int offset) {
 
 	FilePathSet dirSet, fileSet;
 
@@ -645,15 +643,15 @@ void Project::FillFiles(SString label, FilePath dir, SString glob, bool recursiv
 
 	if (recursive)
 		for (size_t i = 0; i < dirSet.Length(); i ++)
-			FillFiles(label, dirSet.At(i), glob, recursive);
+			FillFiles(label, dirSet.At(i), glob, recursive, offset);
 
 	if (!label)
-		label = dir.AsInternal() + basePath.Length() + 1;
+		label = dir.AsInternal() + offset;
 
 	for (size_t i = 0; i < fileSet.Length(); i ++) {
-		const char * entry = fileSet.At(i).AsInternal()  + basePath.Length() + 1;
+		SString entry = fileSet.At(i).AsInternal() + offset;
 
-		if (!glob_match(entry, glob.c_str(), false))
+		if (!glob_match(entry.c_str(), glob.c_str(), false))
 			continue;
 
 
@@ -709,12 +707,19 @@ void Project::Populate()
 		}
 
 		SString path_str = it->path.substr(0, last_sep);
-		FilePath path = basePath + path_str.c_str();
+		FilePath path;
+		int offset = 0;
+		if (path_str[0] == SEP) {
+			path = path_str.c_str();
+		} else {
+			path = basePath + path_str.c_str();
+			offset = basePath.Length() + 1;
+		}
 
 
 		if (path.IsDirectory())
 			// fill files
-			FillFiles(it->label, path, glob, recursive);
+			FillFiles(it->label, path, glob, recursive, offset);
 
 		else if (path.Exists())
 
@@ -766,10 +771,10 @@ int Project::BuildTags(SString &cmd, SString &dir)
 		}
 	}
 
-	std::cout <<"TAGS: " <<propFile.GetExpanded("proj.tags.cmd").c_str() <<'\n';
-
 	cmd = propFile.GetExpanded("proj.tags.cmd");
-	dir = projFile.Directory().AsInternal();
+	dir = basePath.AsInternal();
+
+	//std::cout <<"TAGS: " <<cmd.c_str() <<"   DIR: " <<dir.c_str() <<'\n';
 	return 0;
 }
 

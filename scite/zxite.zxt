@@ -15,6 +15,7 @@ proj.include.++= scintilla/inc | ../scintilla/include/*.h
 proj.include.++= scintilla/src | ../scintilla/src/*.cxx
 proj.include.++= scintilla/gtk/inc |../scintilla/gtk/*.h
 proj.include.++= scintilla/gtk/src |../scintilla/gtk/*.cxx; ../scintilla/gtk/*.c
+proj.include.++= gtk/api | /usr/include/gtk-2.0/**/*.h
 
 proj.include.++= | zxite.zxt
 proj.include.++= | gtk/makefile

@@ -1449,10 +1449,10 @@ int SciTEBase::IncrementSearchMode() {
 	return 0;
 }
 
-int SciTEBase::FindInTarget(const char *findWhat, int lenFind, int startPosition, int endPosition) {
+int SciTEBase::FindInTarget(const char *findEntry, int lenFind, int startPosition, int endPosition) {
 	wEditor.Call(SCI_SETTARGETSTART, startPosition);
 	wEditor.Call(SCI_SETTARGETEND, endPosition);
-	int posFind = wEditor.CallString(SCI_SEARCHINTARGET, lenFind, findWhat);
+	int posFind = wEditor.CallString(SCI_SEARCHINTARGET, lenFind, findEntry);
 	while (findInStyle && posFind != -1 && findStyle != wEditor.Call(SCI_GETSTYLEAT, posFind)) {
 		if (startPosition < endPosition) {
 			wEditor.Call(SCI_SETTARGETSTART, posFind + 1);
@@ -1461,7 +1461,7 @@ int SciTEBase::FindInTarget(const char *findWhat, int lenFind, int startPosition
 			wEditor.Call(SCI_SETTARGETSTART, startPosition);
 			wEditor.Call(SCI_SETTARGETEND, posFind + 1);
 		}
-		posFind = wEditor.CallString(SCI_SEARCHINTARGET, lenFind, findWhat);
+		posFind = wEditor.CallString(SCI_SEARCHINTARGET, lenFind, findEntry);
 	}
 	return posFind;
 }
@@ -3494,7 +3494,7 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 		break;
 
 	case IDM_NEXTFILESTACK:
-		if (buffers.size > 1 && props.GetInt("buffers.zorder.switching")) {
+		if (buffers.size > 1) {
 			NextInStack(); // next most recently selected buffer
 			WindowSetFocus(wEditor);
 			break;
@@ -3511,7 +3511,7 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 		break;
 
 	case IDM_PREVFILESTACK:
-		if (buffers.size > 1 && props.GetInt("buffers.zorder.switching")) {
+		if (buffers.size > 1) {
 			PrevInStack(); // next least recently selected buffer
 			WindowSetFocus(wEditor);
 			break;
@@ -3525,6 +3525,9 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 			// Not using buffers - switch to previous file on MRU
 			StackMenuPrev();
 		}
+		break;
+	case IDM_RELFILESTACK:
+		EndStackedTabbing();
 		break;
 
 	case IDM_MOVETABRIGHT:

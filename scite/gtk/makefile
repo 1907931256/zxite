@@ -7,6 +7,7 @@
 
 # Use V=1 to switch from silent to verbose
 V ?= 0
+NO_LUA := 1
 
 # Generic variables for most rules
 export VERBOSE   := $(filter 1, $(V))
@@ -116,7 +117,11 @@ COMPLIB := ../../scintilla/bin/scintilla.a
 
 OBJ_ZXT := SciTEGTK.o GUIGTK.o FilePath.o SciTEBase.o SciTEBuffers.o SciTEIO.o StringList.o Exporters.o \
     PropSetFile.o MultiplexExtension.o DirectorExtension.o SciTEProps.o StyleWriter.o Utf8_16.o \
-    JobQueue.o GTKMutex.o IFaceTable.o Project.o LuaExtension.o
+    JobQueue.o GTKMutex.o IFaceTable.o Project.o
+
+ifndef NO_LUA
+OBJ_ZXT += LuaExtension.o
+endif
 
 
 OBJ_ZXT_BIN=$(addprefix ../bin/, $(OBJ_ZXT))

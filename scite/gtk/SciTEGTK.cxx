@@ -508,9 +508,11 @@ protected:
 	static void MenuSignal(SciTEGTK *scitew, guint action, GtkWidget *w);
 	static void CommandSignal(GtkWidget *w, gint wParam, gpointer lParam, SciTEGTK *scitew);
 	static void NotifySignal(GtkWidget *w, gint wParam, gpointer lParam, SciTEGTK *scitew);
-	static gint KeyPress(GtkWidget *widget, GdkEventKey *event, SciTEGTK *scitew);
-	gint Key(GdkEventKey *event);
-	static gint MousePress(GtkWidget *widget, GdkEventButton *event, SciTEGTK *scitew);
+	static gint KeyPressSignal(GtkWidget *widget, GdkEventKey *event, SciTEGTK *scitew);
+	static gint KeyReleaseSignal(GtkWidget *widget, GdkEventKey *event, SciTEGTK *scitew);
+	gint KeyPress(GdkEventKey *event);
+	gint KeyRelease(GdkEventKey *event);
+	static gint MousePressSignal(GtkWidget *widget, GdkEventButton *event, SciTEGTK *scitew);
 	gint Mouse(GdkEventButton *event);
 
 	void DividerXOR(GtkWidget *divider, GUI::Point pt);
@@ -1131,7 +1133,7 @@ void SciTEGTK::tree_row_activated_cb(GtkTreeView *view, GtkTreePath *path, GtkTr
 	gtk_tree_model_get_iter(model, &iter, path);
 	gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, COLUMN_PATH, &filepath, -1);
 
-	std::cout <<"  open: " <<filepath <<'\n';
+	//std::cout <<"  open: " <<filepath <<'\n';
 	scitew->Open(scitew->project.basePath + filepath, ofNone);
 
 	g_free (filepath);
@@ -1157,7 +1159,7 @@ int SciTEGTK::QuickOpenFill(GtkListStore *store, GUI::gui_string glob) {
 
 void SciTEGTK::QuickOpenResponse(GtkWidget *w, gint resp, SciTEGTK *scitew) {
 
-	std::cout <<"Response " <<resp <<'\n';
+	//std::cout <<"Response " <<resp <<'\n';
 
 	if (resp == 1 || resp == 2) {
 
@@ -1177,7 +1179,7 @@ void SciTEGTK::QuickOpenResponse(GtkWidget *w, gint resp, SciTEGTK *scitew) {
 				gchar *path;
 				gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, 0, &path, -1);
 
-				std::cout <<"  open: " <<path <<'\n';
+				//std::cout <<"  open: " <<path <<'\n';
 
 				scitew->Open(scitew->project.basePath + path, ofNone);
 
@@ -1285,15 +1287,22 @@ gboolean SciTEGTK::QuickOpenEntry(GtkWidget *w, GdkEventKey *event, SciTEGTK *sc
 	assert(GTK_IS_ENTRY(entry));
 	assert(GTK_IS_DIALOG(dialog));
 
+	//GtkTreeViewColumn *col = NULL;
+	//gtk_tree_view_get_cursor(list, NULL, &col);
+
 	if (event->keyval == GDK_Escape) {
 		gtk_widget_destroy(GTK_WIDGET(dialog));
 		return TRUE;
 
 	} else if (event->keyval == GDK_Return || event->keyval == GDK_KP_Enter || event->keyval == GDK_ISO_Enter) {
-		gtk_dialog_response(dialog, 2);
+
+		gtk_dialog_response(dialog, 1);
 		return TRUE;
 
 	} else if (event->keyval == GDK_Up || event->keyval == GDK_Down) {
+
+		// Impossible to forward event to treelist, gtk ignore it because it has no focus
+		// gtk_widget_event(GTK_WIDGET(list), (GdkEvent*)event);
 
 		gtk_widget_grab_focus (GTK_WIDGET(list));
 
@@ -2705,11 +2714,15 @@ void SciTEGTK::NotifySignal(GtkWidget *, gint /*wParam*/, gpointer lParam, SciTE
 	scitew->Notify(reinterpret_cast<SCNotification *>(lParam));
 }
 
-gint SciTEGTK::KeyPress(GtkWidget * /*widget*/, GdkEventKey *event, SciTEGTK *scitew) {
-	return scitew->Key(event);
+gint SciTEGTK::KeyPressSignal(GtkWidget * /*widget*/, GdkEventKey *event, SciTEGTK *scitew) {
+	return scitew->KeyPress(event);
 }
 
-gint SciTEGTK::MousePress(GtkWidget * /*widget*/, GdkEventButton *event, SciTEGTK *scitew) {
+gint SciTEGTK::KeyReleaseSignal(GtkWidget * /*widget*/, GdkEventKey *event, SciTEGTK *scitew) {
+	return scitew->KeyRelease(event);
+}
+
+gint SciTEGTK::MousePressSignal(GtkWidget * /*widget*/, GdkEventButton *event, SciTEGTK *scitew) {
 	return scitew->Mouse(event);
 }
 
@@ -2733,8 +2746,8 @@ enum {
 };
 
 static KeyToCommand kmap[] = {
-                                 {m_C_, GDK_Tab, IDM_NEXTFILE},
-                                 {mSC_, GDK_ISO_Left_Tab, IDM_PREVFILE},
+                                 {m_C_, GDK_Tab, IDM_NEXTFILESTACK},
+                                 {mSC_, GDK_ISO_Left_Tab, IDM_PREVFILESTACK},
                                  {m_C_, GDK_KP_Enter, IDM_COMPLETEWORD},
                                  {m_C_, GDK_F3, IDM_FINDNEXTSEL},
                                  {mSC_, GDK_F3, IDM_FINDNEXTBACKSEL},
@@ -2754,7 +2767,7 @@ inline bool KeyMatch(const char *menuKey, int keyval, int modifiers) {
 		SciTEKeys::ParseKeyCode(menuKey), keyval, modifiers);
 }
 
-gint SciTEGTK::Key(GdkEventKey *event) {
+gint SciTEGTK::KeyPress(GdkEventKey *event) {
 	// MODIFAC printf("S-key: %d %x %x %x %x\n",event->keyval, event->state, GDK_SHIFT_MASK, GDK_CONTROL_MASK, GDK_F3);
 	int modifiers = event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK);
 
@@ -2826,6 +2839,15 @@ gint SciTEGTK::Key(GdkEventKey *event) {
 	}
 
 	// MODIFAC printf("z\n");
+
+	return 0;
+}
+
+gint SciTEGTK::KeyRelease(GdkEventKey *event) {
+
+	if (event->keyval == GDK_KEY_Control_L || event->keyval == GDK_KEY_Control_R) {
+		Command(IDM_RELFILESTACK);
+	}
 
 	return 0;
 }
@@ -3480,6 +3502,8 @@ void SciTEGTK::CreateMenu() {
 	                                            {"/_Buffers", NULL, NULL, 0, "<Branch>"},
 	                                            {"/Buffers/_Previous", "<alt>Left", menuSig, IDM_PREVFILE, 0},
 	                                            {"/Buffers/_Next", "<alt>Right", menuSig, IDM_NEXTFILE, 0},
+	                                            {"/Buffers/_Before", "<control>Tab", menuSig, IDM_PREVFILESTACK, 0},
+	                                            {"/Buffers/_After", "<control><shift>Tab", menuSig, IDM_NEXTFILESTACK, 0},
 	                                            {"/Buffers/_Close All", "", menuSig, IDM_CLOSEALL, 0},
 	                                            {"/Buffers/_Save All", "", menuSig, IDM_SAVEALL, 0},
 	                                            {"/Buffers/sep2", NULL, NULL, 0, "<Separator>"},
@@ -3574,10 +3598,13 @@ void SciTEGTK::CreateUI() {
 	                   GTK_SIGNAL_FUNC(QuitSignal), gthis);
 
 	gtk_signal_connect(GTK_OBJECT(PWidget(wSciTE)), "key_press_event",
-	                   GtkSignalFunc(KeyPress), gthis);
+	                   GtkSignalFunc(KeyPressSignal), gthis);
+
+	gtk_signal_connect(GTK_OBJECT(PWidget(wSciTE)), "key_release_event",
+	                   GtkSignalFunc(KeyReleaseSignal), gthis);
 
 	gtk_signal_connect(GTK_OBJECT(PWidget(wSciTE)), "button_press_event",
-	                   GtkSignalFunc(MousePress), gthis);
+	                   GtkSignalFunc(MousePressSignal), gthis);
 
 	gtk_window_set_title(GTK_WINDOW(PWidget(wSciTE)), appName);
 	const int useDefault = 0x10000000;

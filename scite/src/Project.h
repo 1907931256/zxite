@@ -48,7 +48,7 @@ class Project {
 	std::list<LabelPath> ruleExclude;
 
 	void ProcessXxclude(const char * prop_type, std::list<LabelPath> &prop_list);
-	void FillFiles(SString label, FilePath dir, SString glob, bool recursive);
+	void FillFiles(SString label, FilePath dir, SString glob, bool recursive, int offset);
 public:
 	bool opened;
 	GUI::gui_string msg;
