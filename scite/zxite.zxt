@@ -1,9 +1,14 @@
 
+# project file is identified by Zxite by its extension 'zxt'
 
 proj.name=Zxite
+# project directory, relative to project file
 proj.path=.
 
+# session file (opt), relative to project file
+proj.session_file=zxite.zxtss
 
+# source files, relative to project directory
 #proj.include.++= test
 
 proj.include.++= zxite/inc | src/*.h
@@ -15,6 +20,7 @@ proj.include.++= scintilla/inc | ../scintilla/include/*.h
 proj.include.++= scintilla/src | ../scintilla/src/*.cxx
 proj.include.++= scintilla/gtk/inc |../scintilla/gtk/*.h
 proj.include.++= scintilla/gtk/src |../scintilla/gtk/*.cxx; ../scintilla/gtk/*.c
+
 proj.include.++= gtk/api | /usr/include/gtk-2.0/**/*.h
 
 proj.include.++= | zxite.zxt

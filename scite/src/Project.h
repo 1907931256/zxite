@@ -59,9 +59,10 @@ public:
 	Project() : opened(false) {}
 	~Project() {}
 
-	bool open(FilePath _propFile);
-	bool close();
+	bool Open(FilePath _propFile);
+	bool Close();
 
+	FilePath GetSessionFile();
 
 	void Populate();
 	int BuildTags(SString &cmd, SString &dir);

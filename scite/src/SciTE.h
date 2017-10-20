@@ -112,6 +112,8 @@
 #define IDM_NEXTMATCHPPC		262
 #define IDM_SELECTTONEXTMATCHPPC	263
 
+#define IDM_CANCEL              	264
+
 // Tools
 #define IDM_COMPILE			301
 #define IDM_BUILD			302

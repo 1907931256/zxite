@@ -711,7 +711,14 @@ int SciTEBase::SaveIfUnsureAll(bool forceQuestion) {
 			AddFileToStack(buff, buff.selection, buff.scrollPosition);
 		}
 	}
-	if (props.GetInt("save.session") || props.GetInt("save.position") || props.GetInt("save.recent")) {
+
+	if (project.opened) {
+		FilePath session_file = project.GetSessionFile();
+		if (session_file.IsSet()) {
+			SaveSessionFile(session_file.AsInternal());
+		}
+		project.Close();
+	} else if (props.GetInt("save.session") || props.GetInt("save.position") || props.GetInt("save.recent")) {
 		SaveSessionFile(GUI_TEXT(""));
 	}
 

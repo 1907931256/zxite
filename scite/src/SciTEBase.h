@@ -791,7 +791,7 @@ protected:
 	virtual void SizeSubWindows() = 0;
 	virtual void UpdateTree() = 0;
 	virtual void QuickOpen() = 0;
-
+	virtual void SymbolFind(int cmd_id) = 0;
 
 	virtual void SetMenuItem(int menuNumber, int position, int itemID,
 		const GUI::gui_char *text, const GUI::gui_char *mnemonic = 0) = 0;

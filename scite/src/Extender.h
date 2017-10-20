@@ -29,7 +29,7 @@ public:
 	virtual void ShutDown()=0;
 	virtual void Perform(const char *actions)=0;
 	virtual void DoMenuCommand(int cmdID)=0;
-	virtual void UpdateStatusBar(bool bUpdateSlowData)=0;
+	virtual void UpdateStatusBar(bool bUpdateSlowData, const char *message=NULL)=0;
 };
 
 /**

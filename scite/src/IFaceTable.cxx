@@ -158,6 +158,7 @@ static IFaceConstant ifaceConstants[] = {
 	{"IDM_BUFFERSEP",505},
 	{"IDM_BUILD",302},
 	{"IDM_BUILDTAGS",308},
+	{"IDM_CANCEL",264},
 	{"IDM_CLEAR",206},
 	{"IDM_CLEAROUTPUT",420},
 	{"IDM_CLOSE",105},
@@ -182,8 +183,8 @@ static IFaceConstant ifaceConstants[] = {
 	{"IDM_EOL_LF",432},
 	{"IDM_EXPAND",235},
 	{"IDM_EXPAND_ENSURECHILDRENVISIBLE",238},
-	{"IDM_FILEBACK",510},
-	{"IDM_FILEFWD",511},
+	{"IDM_FILEBACK",511},
+	{"IDM_FILEFWD",512},
 	{"IDM_FILER",114},
 	{"IDM_FIND",210},
 	{"IDM_FINDINFILES",215},
@@ -217,8 +218,8 @@ static IFaceConstant ifaceConstants[] = {
 	{"IDM_MACRO_SEP",310},
 	{"IDM_MATCHBRACE",230},
 	{"IDM_MONOFONT",450},
-	{"IDM_MOVETABLEFT",509},
-	{"IDM_MOVETABRIGHT",508},
+	{"IDM_MOVETABLEFT",510},
+	{"IDM_MOVETABRIGHT",509},
 	{"IDM_MRUFILE",1000},
 	{"IDM_MRU_SEP",120},
 	{"IDM_NEW",101},
@@ -248,6 +249,7 @@ static IFaceConstant ifaceConstants[] = {
 	{"IDM_QUIT",140},
 	{"IDM_READONLY",416},
 	{"IDM_REDO",202},
+	{"IDM_RELFILESTACK",508},
 	{"IDM_REPLACE",216},
 	{"IDM_REVERT",104},
 	{"IDM_RUNWIN",351},
@@ -2137,7 +2139,7 @@ static IFaceConstant ifaceConstants[] = {
 	{"SC_MARK_TCORNERCURVE",17},
 	{"SC_MARK_UNDERLINE",29},
 	{"SC_MARK_VLINE",9},
-	{"SC_MASK_FOLDERS",(int) 0xFE000000},
+	{"SC_MASK_FOLDERS",(int)0xFE000000},
 	{"SC_MODEVENTMASKALL",0x7FFFF},
 	{"SC_MOD_BEFOREDELETE",0x800},
 	{"SC_MOD_BEFOREINSERT",0x400},
@@ -2641,7 +2643,7 @@ static IFaceProperty ifaceProperties[] = {
 
 enum {
 	ifaceFunctionCount = 265,
-	ifaceConstantCount = 2066,
+	ifaceConstantCount = 2068,
 	ifacePropertyCount = 170
 };
 

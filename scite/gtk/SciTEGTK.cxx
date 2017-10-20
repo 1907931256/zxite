@@ -65,6 +65,23 @@
 
 const char appName[] = "Zxite";
 
+
+void DbgDumpChilds(GtkWidget* parent, int indent)
+{
+    printf("%*c%s  %p\n", indent, ' ', gtk_widget_get_name((GtkWidget*)parent), (void*)parent);
+
+    if (GTK_IS_BIN(parent)) {
+	    GtkWidget *child = gtk_bin_get_child(GTK_BIN(parent));
+	    DbgDumpChilds(child, indent + 4);
+    }
+
+    if (GTK_IS_CONTAINER(parent)) {
+	    GList *children = gtk_container_get_children(GTK_CONTAINER(parent));
+	    while ((children = g_list_next(children)) != NULL)
+		    DbgDumpChilds(GTK_WIDGET(children->data), indent + 4);
+    }
+}
+
 static GtkWidget *PWidget(GUI::Window &w) {
 	return reinterpret_cast<GtkWidget *>(w.GetID());
 }
@@ -392,9 +409,12 @@ protected:
 	virtual void QuickOpen();
 	static void QuickOpenResponse(GtkWidget *w, gint resp, SciTEGTK *scitew);
 	int QuickOpenFill(GtkListStore *store, GUI::gui_string glob);
-	static gboolean QuickOpenKeyList(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
+	static gboolean QuickOpenKeySignal(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
 	static gboolean QuickOpenEntry(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
 	//static gboolean QuickOpenPress(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
+
+	virtual void SymbolFind(int cmd_id);
+	static gboolean SymbolFindKeySignal(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew);
 
 	virtual void SetMenuItem(int menuNumber, int position, int itemID,
 	                         const char *text, const char *mnemonic = 0);
@@ -456,7 +476,7 @@ protected:
 	virtual void TabSelect(int index);
 	virtual void RemoveAllTabs();
 	virtual void SetFileProperties(PropSetFile &ps);
-	virtual void UpdateStatusBar(bool bUpdateSlowData);
+	virtual void UpdateStatusBar(bool bUpdateSlowData, const char *message=NULL);
 
 	virtual void Notify(SCNotification *notification);
 	virtual void ShowToolBar();
@@ -795,8 +815,8 @@ void SciTEGTK::SetFileProperties(PropSetFile &ps) {
 	ps.Set("CurrentTime", "");
 }
 
-void SciTEGTK::UpdateStatusBar(bool bUpdateSlowData) {
-	SciTEBase::UpdateStatusBar(bUpdateSlowData);
+void SciTEGTK::UpdateStatusBar(bool bUpdateSlowData, const char *message) {
+	SciTEBase::UpdateStatusBar(bUpdateSlowData, message);
 }
 
 void SciTEGTK::Notify(SCNotification *notification) {
@@ -895,7 +915,9 @@ void SciTEGTK::Command(unsigned long wParam, long) {
 		SciTEBase::MenuCommand(cmdID, menuSource);
 		menuSource = 0;
 	}
-	UpdateStatusBar(true);
+
+	//Prevent extra message from commands
+	//UpdateStatusBar(true);
 }
 
 void SciTEGTK::ReadLocalization() {
@@ -1026,11 +1048,9 @@ enum {
 bool SciTEGTK::ProcessFolder(GtkTreeIter *parent_iter, std::vector<LabelPath>::iterator &it, size_t pos) {
 
 	//fprintf(stderr, "Iter <%s> [%zd] <%s>\n", it->label.c_str(), pos, it->filename.c_str());
-
 	for (;;) {
 		GtkTreeIter iter;
 		SString &label = it->label;
-
 		gtk_tree_store_append (wTreeModel, &iter, parent_iter);
 
 		if (pos < label.length() && label != "|") {
@@ -1051,14 +1071,12 @@ bool SciTEGTK::ProcessFolder(GtkTreeIter *parent_iter, std::vector<LabelPath>::i
 			//fprintf(stderr, " Check <%s> <%s> <%s> %zd %zd [%s] %d\n", label.c_str(), folder.c_str(), folder2.c_str(),
 			//	pos, sep_next, it->label.c_str(), folder.compare(0, pos - 1, it->label.c_str(), pos - 1));
 
-			if (folder.compare(0, pos - 1, it->label.c_str(), pos - 1))
+			if (pos == 0 || folder.compare(0, pos - 1, it->label.c_str(), pos - 1))
 				return false;
-
 		} else {
 			//fprintf(stderr, "   File <%s>\n", it->filename.c_str());
 			gtk_tree_store_set(wTreeModel, &iter, COLUMN_LABEL, it->filename.c_str(), COLUMN_PATH, it->path.c_str(), -1);
 			it++;
-			//fprintf(stderr, "   next <%s> <%s>\n", it->label.c_str(), it->filename.c_str());
 
 			if (it == project.files.end())
 				return true;
@@ -1260,7 +1278,7 @@ gboolean SciTEGTK::QuickOpenPress(GtkWidget *w, GdkEventKey *event, SciTEGTK *sc
 }
 #endif
 
-gboolean SciTEGTK::QuickOpenKeyList(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
+gboolean SciTEGTK::QuickOpenKeySignal(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
 
 	(void) scitew;
 	GtkWidget *dialog = gtk_widget_get_parent(gtk_widget_get_parent(gtk_widget_get_parent(w)));
@@ -1402,7 +1420,7 @@ void SciTEGTK::QuickOpen() {
 	//gtk_tree_view_set_search_column(GTK_TREE_VIEW(list), COLUMN_DESCRIPTION);
 	//gtk_window_set_accept_focus(GTK_WINDOW(list), FALSE);
 
-	gtk_signal_connect(GTK_OBJECT(list), "key-press-event", GtkSignalFunc(QuickOpenKeyList), this);
+	gtk_signal_connect(GTK_OBJECT(list), "key-press-event", GtkSignalFunc(QuickOpenKeySignal), this);
 
 
   	GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
@@ -1421,6 +1439,130 @@ void SciTEGTK::QuickOpen() {
 
 	//gtk_widget_show_alldialog);
 }
+
+
+gboolean SciTEGTK::SymbolFindKeySignal(GtkWidget *w, GdkEventKey *event, SciTEGTK *scitew) {
+
+	switch (event->keyval) {
+	case GDK_Return:
+	case GDK_KP_Enter:
+	case GDK_ISO_Enter: {
+		GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w));
+		GtkListStore *store = (GtkListStore*) gtk_tree_view_get_model(GTK_TREE_VIEW(w));
+		GtkTreeIter iter;
+		if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
+			gchar *path;
+			guint line;
+			gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, 1, &path, 2, &line, -1);
+			scitew->Open(scitew->project.basePath + path);
+			scitew->GotoLineEnsureVisible(line - 1);
+		}
+	}	// fall-through
+	case GDK_Escape:
+		gtk_widget_destroy(gtk_widget_get_parent(gtk_widget_get_parent(w)));
+		return TRUE;
+	default:
+		return FALSE;
+	}
+
+}
+
+
+void SciTEGTK::SymbolFind(int cmd_id) {
+
+	char buf[256] = {0};
+
+	SString sel = SelectionExtend(&SciTEGTK::iswordcharforsel);
+	if (!sel.length()) {
+		snprintf(buf, sizeof(buf) - 1, "No symbol selected");
+		buf[255] = '\0';
+		UpdateStatusBar(false, buf);
+		return;
+	}
+
+	std::vector<CTag> vector = project.FindTag(sel, cmd_id);
+	if (vector.size() == 1) {
+		Open(project.basePath + vector.front().file.c_str(), ofNone);
+		GotoLineEnsureVisible(vector.front().line - 1);
+
+	} else if (vector.size()) {
+		snprintf(buf, sizeof(buf) - 1, "Find Symbol '%s'", sel.c_str());
+		buf[255] = '\0';
+		GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		gtk_window_set_title(GTK_WINDOW(win), buf);
+		gtk_window_set_policy(GTK_WINDOW(win), TRUE, TRUE, TRUE);
+
+
+		GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
+		gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+		gtk_container_add(GTK_CONTAINER(win), scroll);
+
+		GtkListStore *store = gtk_list_store_new (4, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_STRING);
+		for (std::vector<CTag>::iterator it = vector.begin(); it != vector.end(); it++) {
+			guint pos = 0;
+			buf[0] = '\0';
+			while (it->ext.size() && pos < sizeof(buf)) {
+				SString field(it->ext.front());
+				pos += snprintf(buf + pos, sizeof(buf) - pos, "  %s", field.c_str());
+				it->ext.pop_front();
+			}
+			buf[255] = '\0';
+
+
+			GtkTreeIter iter;
+			gtk_list_store_append(store, &iter);
+			gtk_list_store_set(store, &iter,
+				0, it->kind.c_str(),
+				1, it->file.c_str(),
+				2, it->line,
+				3, buf,
+				-1);
+		}
+
+		/* create tree view */
+		GtkWidget *list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+		//GtkTreeSelection* selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
+		//gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
+
+		gtk_tree_view_set_rules_hint(GTK_TREE_VIEW(list), TRUE);
+		//gtk_tree_view_set_search_column(GTK_TREE_VIEW(list), COLUMN_DESCRIPTION);
+		//gtk_window_set_accept_focus(GTK_WINDOW(list), FALSE);
+
+		gtk_signal_connect(GTK_OBJECT(list), "key-press-event", GtkSignalFunc(SymbolFindKeySignal), this);
+
+
+		GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
+		gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(list), -1, "Type", renderer, "text", 0, NULL);
+		gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(list), -1, "File", renderer, "text", 1, NULL);
+		gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(list), -1, "Line", renderer, "text", 2, NULL);
+		gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(list), -1, "Details", renderer, "text", 3, NULL);
+		gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(list), FALSE);
+		g_object_unref(store);
+
+		GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list));
+		GtkTreePath *path = gtk_tree_path_new_from_indices(0, -1);
+		gtk_tree_selection_select_path(selection, path);
+		gtk_tree_path_free(path);
+
+		gtk_container_add(GTK_CONTAINER(scroll), list);
+		gtk_widget_grab_focus(list);
+
+		//gtk_signal_connect(GTK_OBJECT(win), "response", GtkSignalFunc(SymbolFindResponse), this);
+		//gtk_dialog_set_default_response(GTK_DIALOG(dialog), 1);
+
+		//gtk_tree_view_columns_autosize(GTK_TREE_VIEW(list));
+		GtkRequisition req;
+		gtk_widget_size_request (list, &req);
+		gtk_window_set_default_size(GTK_WINDOW(win), req.width, req.height);
+
+		gtk_widget_show_all(win);
+	} else {
+		snprintf(buf, sizeof(buf) - 1, "Cannot find symbol '%s'", sel.c_str());
+		buf[255] = '\0';
+		UpdateStatusBar(false, buf);
+	}
+}
+
 
 void SciTEGTK::SetMenuItem(int, int, int itemID, const char *text, const char *mnemonic) {
 	DestroyMenuItem(0, itemID);
@@ -2227,10 +2369,17 @@ void SciTEGTK::IOSignal(SciTEGTK *scitew) {
 	scitew->ContinueExecute(FALSE);
 }
 
-int xsystem(const char *s, int fh) {
+int xsystem(const char *s, const char *dir, int fh) {
 	int pid = 0;
 	if ((pid = fork()) == 0) {
-		for (int i=getdtablesize();i>=0;--i) if (i != fh) close(i);
+
+		if (dir && chdir(dir))
+			fprintf(stderr, "ERR!\n");
+
+		for (int i=getdtablesize();i>=0;--i)
+			if (i != fh)
+				close(i);
+
 		if (open("/dev/null", O_RDWR) >= 0) { // stdin
 			if (dup(fh) >= 0) { // stdout
 				if (dup(fh) >= 0) { // stderr
@@ -2263,16 +2412,17 @@ void SciTEGTK::Execute() {
 		OutputAppendString("\n");
 	}
 
-	if (jobQueue.jobQueue[icmd].directory.IsSet()) {
-		jobQueue.jobQueue[icmd].directory.SetWorkingDirectory();
-	}
 
 	if (jobQueue.jobQueue[icmd].jobType == jobShell) {
-		if (fork() == 0)
+		if (fork() == 0) {
+			if (jobQueue.jobQueue[icmd].directory.IsSet())
+				jobQueue.jobQueue[icmd].directory.SetWorkingDirectory();
+
 			execlp("/bin/sh", "sh", "-c", jobQueue.jobQueue[icmd].command.c_str(),
 				static_cast<char *>(NULL));
-		else
+		} else {
 			ExecuteNext();
+		}
 	} else if (jobQueue.jobQueue[icmd].jobType == jobExtension) {
 		if (extender)
 			extender->OnExecute(jobQueue.jobQueue[icmd].command.c_str());
@@ -2285,7 +2435,11 @@ void SciTEGTK::Execute() {
 			return;
 		}
 
-		pidShell = xsystem(jobQueue.jobQueue[icmd].command.c_str(), pipefds[1]);
+		const char *dir = NULL;
+		if (jobQueue.jobQueue[icmd].directory.IsSet())
+			dir = jobQueue.jobQueue[icmd].directory.AsInternal();
+
+		pidShell = xsystem(jobQueue.jobQueue[icmd].command.c_str(), dir, pipefds[1]);
 		triedKill = false;
 		fdFIFO = pipefds[0];
 		fcntl(fdFIFO, F_SETFL, fcntl(fdFIFO, F_GETFL) | O_NONBLOCK);
@@ -2705,8 +2859,6 @@ void SciTEGTK::MenuSignal(SciTEGTK *scitew, guint action, GtkWidget *) {
 }
 
 void SciTEGTK::CommandSignal(GtkWidget *, gint wParam, gpointer lParam, SciTEGTK *scitew) {
-
-	// MODIFAC std::cout <<"cmd sig\n";
 	scitew->Command(wParam, reinterpret_cast<long>(lParam));
 }
 
@@ -2759,6 +2911,7 @@ static KeyToCommand kmap[] = {
                                  {m_CA, GDK_Left, IDM_MOVETABLEFT},
                                  {m_CA, GDK_Right, IDM_MOVETABRIGHT},
                                  {m_C_, GDK_KP_Multiply, IDM_EXPAND},
+                                 {m___, GDK_Escape, IDM_CANCEL},
                                  {0, 0, 0},
                              };
 
@@ -2799,12 +2952,13 @@ gint SciTEGTK::KeyPress(GdkEventKey *event) {
 	if (commandID) {
 		// MODIFAC printf("e\n");
 		Command(commandID);
+		return 1;
 	}
-	if ((commandID == IDM_NEXTFILE) || (commandID == IDM_PREVFILE)) {
-		// Stop the default key processing from moving the focus
-		gtk_signal_emit_stop_by_name(
-		    GTK_OBJECT(PWidget(wSciTE)), "key_press_event");
-	}
+	//if ((commandID == IDM_NEXTFILE) || (commandID == IDM_PREVFILE)) {
+	//	// Stop the default key processing from moving the focus
+	//	gtk_signal_emit_stop_by_name(
+	//	    GTK_OBJECT(PWidget(wSciTE)), "key_press_event");
+	//}
 
 	// check tools menu command shortcuts
 	for (int tool_i = 0; tool_i < toolMax; ++tool_i) {
@@ -3717,9 +3871,8 @@ void SciTEGTK::CreateUI() {
 	//g_signal_connect (wTreeView, "realize", G_CALLBACK (gtk_tree_view_expand_all), NULL);
 
 	GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(wTreeView));
-
-	g_signal_connect (selection, "changed", G_CALLBACK(tree_selection_cb), GTK_TREE_MODEL(wTreeModel));
-	g_signal_connect (wTreeView, "row_activated", G_CALLBACK(tree_row_activated_cb), this);
+	g_signal_connect(selection, "changed", G_CALLBACK(tree_selection_cb), GTK_TREE_MODEL(wTreeModel));
+	g_signal_connect(wTreeView, "row_activated", G_CALLBACK(tree_row_activated_cb), this);
 
 
 	// wEditor

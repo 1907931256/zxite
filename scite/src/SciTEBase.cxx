@@ -1785,7 +1785,8 @@ void SciTEBase::Execute() {
 	jobQueue.cancelFlag = 0L;
 	jobQueue.SetExecuting(true);
 	CheckMenus();
-	filePath.Directory().SetWorkingDirectory();
+	//bug?
+	//filePath.Directory().SetWorkingDirectory();
 	dirNameAtExecute = filePath.Directory();
 }
 
@@ -4014,50 +4015,7 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 	case IDM_FINDTAG_ALL:
 	case IDM_FINDTAG_DECL:
 	case IDM_FINDTAG_DEF:
-		{
-			SString sel = SelectionExtend(&SciTEBase::iswordcharforsel);
-			if (!sel.length())
-				return;
-
-			std::vector<CTag> vector = project.FindTag(sel, cmdID);
-			if (vector.size() == 1) {
-				Open(project.basePath + vector.front().file.c_str(), ofNone);
-				GotoLineEnsureVisible(vector.front().line - 1);
-
-			} else if (vector.size()) {
-				MakeOutputVisible();
-				char buf[256];
-				unsigned len = snprintf(buf, sizeof(buf), "\n>Multiple CTag results for symbol \"%s\":\n", sel.c_str());
-				OutputAppendStringSynchronised(buf, len);
-
-				unsigned maxlen = 0;
-				for (std::vector<CTag>::iterator it = vector.begin(); it != vector.end(); it++)
-					if (maxlen < it->file.length())
-						maxlen = it->file.length();
-				for (std::vector<CTag>::iterator it = vector.begin(); it != vector.end(); it++) {
-					len = snprintf(buf, sizeof(buf), "%s:%d: ", it->file.c_str(), it->line);
-					if (sizeof(buf) < len)
-						len = sizeof(buf) - 1;
-					while (len < sizeof(buf) && len < maxlen + 8)
-						buf[len++] = ' ';
-					wOutput.Send(SCI_APPENDTEXT, len, reinterpret_cast<sptr_t>(buf));
-					wOutput.Send(SCI_GOTOPOS, maxlen + 8);
-					len = snprintf(buf, sizeof(buf), "%12s", it->kind.c_str());
-					if (sizeof(buf) < len)
-						len = sizeof(buf) - 1;
-					wOutput.Send(SCI_APPENDTEXT, len, reinterpret_cast<sptr_t>(buf));
-					while (it->ext.size()) {
-						SString field(it->ext.front());
-						len = snprintf(buf, sizeof(buf), "  %s", field.c_str());
-						if (sizeof(buf) < len)
-							len = sizeof(buf) - 1;
-						wOutput.Send(SCI_APPENDTEXT, len, reinterpret_cast<sptr_t>(buf));
-						it->ext.pop_front();
-					}
-					OutputAppendStringSynchronised("\n", 1);
-				}
-			}
-		}
+		SymbolFind(cmdID);
 		break;
 
 	case IDM_FINDTAG_PATTERN: {
@@ -4066,7 +4024,9 @@ void SciTEBase::MenuCommand(int cmdID, int source) {
 		}
 		break;
 
-	break;
+	case IDM_CANCEL:
+		wEditor.Call(SCI_MARKERDELETEALL, 0);
+		break;
 
 	case IDM_HELP: {
 			SelectionIntoProperties();
@@ -5122,7 +5082,7 @@ bool SciTEBase::ProcessCommandLine(GUI::gui_string &args, int phase) {
 
 			if (EndsWith(arg, GUI_TEXT(".zxt"))) {
 
-				if (!project.open(FilePath(arg).AbsolutePath())) {
+				if (!project.Open(FilePath(arg).AbsolutePath())) {
 					WindowMessageBox(wSciTE, project.msg, MB_OK | MB_ICONWARNING);
 				}
 
@@ -5130,6 +5090,12 @@ bool SciTEBase::ProcessCommandLine(GUI::gui_string &args, int phase) {
 
 				if (treeSize == 0)
 					ToggleTreeVisible();
+
+				FilePath session_file = project.GetSessionFile();
+				if (session_file.Exists()) {
+					LoadSessionFile(session_file.AsInternal());
+					RestoreSession();
+				}
 
 				Open(arg, ofNone);
 

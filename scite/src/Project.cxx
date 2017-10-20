@@ -573,10 +573,10 @@ void Project::ProcessXxclude(const char * prop_type, std::list<LabelPath> &prop_
 
 
 
-bool Project::open(FilePath file)
+bool Project::Open(FilePath file)
 {
 	if (opened)
-		close();
+		Close();
 
 	propFile.Read(file, file.Directory());
 
@@ -618,9 +618,8 @@ bool Project::open(FilePath file)
 
 
 
-bool Project::close()
+bool Project::Close()
 {
-
 	propFile.Clear();
 	name.clear();
 	ruleInclude.clear();
@@ -634,6 +633,13 @@ bool Project::close()
 
 }
 
+FilePath Project::GetSessionFile() {
+	SString file = propFile.Get("proj.session_file");
+	if (file)
+		return projFile.Directory() + FilePath(file.c_str());
+	else
+		return FilePath();
+}
 
 void Project::FillFiles(SString label, FilePath dir, SString glob, bool recursive, int offset) {
 
@@ -707,15 +713,10 @@ void Project::Populate()
 		}
 
 		SString path_str = it->path.substr(0, last_sep);
-		FilePath path;
+		FilePath path = basePath + path_str.c_str();
 		int offset = 0;
-		if (path_str[0] == SEP) {
-			path = path_str.c_str();
-		} else {
-			path = basePath + path_str.c_str();
+		if (path_str[0] != SEP)
 			offset = basePath.Length() + 1;
-		}
-
 
 		if (path.IsDirectory())
 			// fill files
@@ -782,7 +783,7 @@ std::vector<CTag> Project::FindTag(SString tag, int cmdID)
 {
 	std::vector<CTag> vector;
 	SString symbols_file = propFile.Get("proj.tags.symbols_file");
-	std::cout <<"open: " << symbols_file.c_str() <<"\n";
+	//std::cout <<"open: " << symbols_file.c_str() <<"\n";
 	char ** found = tag_find(symbols_file.c_str(), tag.c_str());
 
 	while (found && *found) {
@@ -849,7 +850,7 @@ std::vector<CTag> Project::FindTag(SString tag, int cmdID)
 			|| (cmdID == IDM_FINDTAG_DECL && kind != 'p' && kind != 'x')
 			|| (cmdID == IDM_FINDTAG_DEF && (kind == 'p' || kind == 'x'))
 		) {
-			SString kind_str = "pouet";
+			SString kind_str;
 			switch (kind) {
 			case 'c': kind_str = "class"; break;
 			case 'd': kind_str = "macro"; break;
