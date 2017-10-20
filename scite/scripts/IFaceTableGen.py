@@ -31,7 +31,7 @@ functions - a sorted list of (name, features) tuples, for the features
 	'fun' functions; it is up to the program to decide if a given
 	function cannot be scripted.  It is also up to the caller to
 	export the SCI_ constants for functions.
-properties - a sorted list of (name, property), where property is a 
+properties - a sorted list of (name, property), where property is a
 	dictionary containing these keys: "GetterValue", "SetterValue",
 	"PropertyType", "IndexParamType", "IndexParamName", "GetterName",
 	"SetterName", "GetterComment", "SetterComment", and "Category".
@@ -154,7 +154,7 @@ properties - a sorted list of (name, property), where property is a
 				functions[getterName] = getter
 			if setter:
 				functions[setterName] = setter
-	
+
 	funclist = list(functions.items())
 	funclist.sort()
 
@@ -179,6 +179,9 @@ def printIFaceTableCXXFile(faceAndIDs, out):
 		for name, features in constants:
 			if first: first = 0
 			else: out.write(",")
+			if 2**31 <= int(features["Value"],0):
+				# force unsigned into int to prevent gcc error
+				features["Value"] = "(int)" + features["Value"]
 			out.write('\n\t{"%s",%s}' % (name, features["Value"]))
 
 		out.write("\n};\n")
