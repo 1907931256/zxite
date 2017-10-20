@@ -600,14 +600,12 @@ void FilePath::FixName() {
 FilePath FilePath::operator+(const FilePath &add) const {
 	GUI::gui_string dup = fileName;
 
-	if (add.fileName.size()) {
-		int cnt_sep = (dup[dup.size()-1] == pathSepChar) + (add.AsInternal()[0] == pathSepChar);
+	if (add.IsAbsolute()) {
+		return add;
+	} else if (add.fileName.size()) {
 
-		if (cnt_sep == 0)
+		if (dup[dup.size()-1] != pathSepChar)
 			dup += pathSepChar;
-
-		else if (cnt_sep == 2)
-			dup.resize(dup.size()-1);
 
 		dup += add.AsInternal();
 	}
