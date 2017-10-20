@@ -59,7 +59,7 @@ all: $(PROG)
 vpath %.h ../src ../../scintilla/include
 vpath %.cxx ../src
 
-CFLAGS := -I ../../scintilla/include -I ../src
+CFLAGS := -I ../../scintilla/include -I ../src -I../lua/include
 CFLAGS += -W -Wall -Wno-char-subscripts -pedantic -DGTK -DSCI_LEXER -DPIXMAP_PATH=\"$(pixmapdir)\" -DSYSCONF_PATH=\"$(SYSCONF_PATH)\"
 
 DEBUG := 1
@@ -81,8 +81,6 @@ vpath %.c ../lua/src ../lua/src/lib
 
 LUA_OBJ_BIN=$(addprefix ../bin/lua/, $(LUA_OBJ))
 
-
-CFLAGS += -I../lua/include
 
 ../bin/lua:
 	mkdir -p ../bin/lua
